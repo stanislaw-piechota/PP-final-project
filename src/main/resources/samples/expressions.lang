@@ -5,7 +5,9 @@
 
 // boolean operations
 true && false;
-(1 || var2) && var3;
+(true || (var1 := true)) && 1 > var2 := 1;
+var1 == true;
+var2 != 2;
 
 // expression with assignment
-(var2 = 3) * 4 + (var4 := 1);
+var3 := 2 * 4 > var2 = var2 + 1;

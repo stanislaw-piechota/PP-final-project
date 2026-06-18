@@ -11,18 +11,24 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	/**
+	 * Visit a parse tree produced by {@link LanguageParser#program}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitProgram(LanguageParser.ProgramContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link LanguageParser#block}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitBlock(LanguageParser.BlockContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code explicit_declaration}
+	 * Visit a parse tree produced by the {@code explicitDeclaration}
 	 * labeled alternative in {@link LanguageParser#statement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitExplicit_declaration(LanguageParser.Explicit_declarationContext ctx);
+	T visitExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code print}
 	 * labeled alternative in {@link LanguageParser#statement}.
@@ -106,19 +112,19 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitLt(LanguageParser.LtContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code subtraction}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSubtraction(LanguageParser.SubtractionContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code notEqual}
 	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitNotEqual(LanguageParser.NotEqualContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code substraction}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSubstraction(LanguageParser.SubstractionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code gt}
 	 * labeled alternative in {@link LanguageParser#expression}.
@@ -127,19 +133,19 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitGt(LanguageParser.GtContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code implicitDeclaration}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code equal}
 	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitEqual(LanguageParser.EqualContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code implicit_declaration}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitImplicit_declaration(LanguageParser.Implicit_declarationContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code and}
 	 * labeled alternative in {@link LanguageParser#expression}.

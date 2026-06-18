@@ -48,15 +48,15 @@ variableTwo: bool = true;
 variableOne: int; 
 variableTwo: bool;
 ```
+_**WARNING**: Usage of uninitialised variable will cause an error._
 - type inference
 ```
 inferredVariableOne := 0;
 inferredVariableTwo := true;
 ```
 
-> **TODO**: Mention **undefined use** error
-
-> **TODO**: Mention how the scopes work
+It is possible to redeclare a variable as long as it is in 
+different scope (block), otherwise it will cause an error.
 
 ### 2.3. Basic logging
 Standard output is managed with keyword **print**.
@@ -88,7 +88,7 @@ if <expr> {
     <block>
 } 
 
-// There can be more elif block
+// There can be more elif blocks
 
 else {
     <block>
@@ -123,20 +123,43 @@ join <threadId>;
 
 > **TODO**: Add LOCK grammars
 
-## 3. Feature roadmap
+## 3. Intermediate Representation
 
-1. Variables
-2. Arithmetic and logic expressions
-3. Print statement
-4. Conditionals
-5. While loop 
-6. Functions (+1.0)
-7. Concurrency 
-8. Pointers (+1.0)
-9. Arrays (+1.0)
-10. Strings (+0.5)
-11. Soft division (+0.3)
-12. Call-by-reference (+0.5)
-13. Exception handling (+1.0)
+Intermediate representation is an **AST** rewritten using **JSON** notation.
+Every node has:
+- name _(key - object pair)_
+- intrinsic attributes _(key - value pair)_
+- list of children nodes _(key - list pair)_
+
+The schema look like the following
+```json
+{
+  "<nodeName>": {
+    "<attr1>": 1,
+    "<attr2>": true,
+    "children": []
+  }
+}
+```
+
+## 4. Feature roadmap
+
+| Feature Name              | Frontend | Backend |
+|---------------------------|----------|---------|
+| Variables                 | ✅        | ❌       |
+| Arithmetics op.           | ✅        | ❌       |
+| Boolean op.               | ✅        | ❌       |
+| Print                     | ❌        | ❌       |
+| Conditionals              | ❌        | ❌       |
+| While loop                | ❌        | ❌       |
+| Functions (+1.0)          | ❌        | ❌       |
+| Threads                   | ❌        | ❌       |
+| Locks                     | ❌        | ❌       |
+| Pointers (+1.0)           | ❌        | ❌       |
+| Arrays (+1.0)             | ❌        | ❌       |
+| Strings (+0.5)            | ❌        | ❌       |
+| Soft division (+0.3)      | ❌        | ❌       |
+| Call-by-reference (+0.5)  | ❌        | ❌       |
+| Exception handling (+1.0) | ❌        | ❌       |
 
 **Sum: 11.3**

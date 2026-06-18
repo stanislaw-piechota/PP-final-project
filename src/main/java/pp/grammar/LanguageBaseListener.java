@@ -17,6 +17,18 @@ public class LanguageBaseListener implements LanguageListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterProgram(LanguageParser.ProgramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitProgram(LanguageParser.ProgramContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterBlock(LanguageParser.BlockContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -29,13 +41,13 @@ public class LanguageBaseListener implements LanguageListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterExplicit_declaration(LanguageParser.Explicit_declarationContext ctx) { }
+	@Override public void enterExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitExplicit_declaration(LanguageParser.Explicit_declarationContext ctx) { }
+	@Override public void exitExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -185,6 +197,18 @@ public class LanguageBaseListener implements LanguageListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterSubtraction(LanguageParser.SubtractionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitSubtraction(LanguageParser.SubtractionContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterNotEqual(LanguageParser.NotEqualContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -192,18 +216,6 @@ public class LanguageBaseListener implements LanguageListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitNotEqual(LanguageParser.NotEqualContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterSubstraction(LanguageParser.SubstractionContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitSubstraction(LanguageParser.SubstractionContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -221,6 +233,18 @@ public class LanguageBaseListener implements LanguageListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterEqual(LanguageParser.EqualContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -228,18 +252,6 @@ public class LanguageBaseListener implements LanguageListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitEqual(LanguageParser.EqualContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterImplicit_declaration(LanguageParser.Implicit_declarationContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitImplicit_declaration(LanguageParser.Implicit_declarationContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *

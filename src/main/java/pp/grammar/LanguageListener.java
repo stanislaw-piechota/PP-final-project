@@ -8,6 +8,16 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
  */
 public interface LanguageListener extends ParseTreeListener {
 	/**
+	 * Enter a parse tree produced by {@link LanguageParser#program}.
+	 * @param ctx the parse tree
+	 */
+	void enterProgram(LanguageParser.ProgramContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LanguageParser#program}.
+	 * @param ctx the parse tree
+	 */
+	void exitProgram(LanguageParser.ProgramContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link LanguageParser#block}.
 	 * @param ctx the parse tree
 	 */
@@ -18,17 +28,17 @@ public interface LanguageListener extends ParseTreeListener {
 	 */
 	void exitBlock(LanguageParser.BlockContext ctx);
 	/**
-	 * Enter a parse tree produced by the {@code explicit_declaration}
+	 * Enter a parse tree produced by the {@code explicitDeclaration}
 	 * labeled alternative in {@link LanguageParser#statement}.
 	 * @param ctx the parse tree
 	 */
-	void enterExplicit_declaration(LanguageParser.Explicit_declarationContext ctx);
+	void enterExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx);
 	/**
-	 * Exit a parse tree produced by the {@code explicit_declaration}
+	 * Exit a parse tree produced by the {@code explicitDeclaration}
 	 * labeled alternative in {@link LanguageParser#statement}.
 	 * @param ctx the parse tree
 	 */
-	void exitExplicit_declaration(LanguageParser.Explicit_declarationContext ctx);
+	void exitExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code print}
 	 * labeled alternative in {@link LanguageParser#statement}.
@@ -170,6 +180,18 @@ public interface LanguageListener extends ParseTreeListener {
 	 */
 	void exitLt(LanguageParser.LtContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code subtraction}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterSubtraction(LanguageParser.SubtractionContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code subtraction}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitSubtraction(LanguageParser.SubtractionContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code notEqual}
 	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
@@ -181,18 +203,6 @@ public interface LanguageListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitNotEqual(LanguageParser.NotEqualContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code substraction}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterSubstraction(LanguageParser.SubstractionContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code substraction}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitSubstraction(LanguageParser.SubstractionContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code gt}
 	 * labeled alternative in {@link LanguageParser#expression}.
@@ -206,6 +216,18 @@ public interface LanguageListener extends ParseTreeListener {
 	 */
 	void exitGt(LanguageParser.GtContext ctx);
 	/**
+	 * Enter a parse tree produced by the {@code implicitDeclaration}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void enterImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx);
+	/**
+	 * Exit a parse tree produced by the {@code implicitDeclaration}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 */
+	void exitImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx);
+	/**
 	 * Enter a parse tree produced by the {@code equal}
 	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
@@ -217,18 +239,6 @@ public interface LanguageListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitEqual(LanguageParser.EqualContext ctx);
-	/**
-	 * Enter a parse tree produced by the {@code implicit_declaration}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void enterImplicit_declaration(LanguageParser.Implicit_declarationContext ctx);
-	/**
-	 * Exit a parse tree produced by the {@code implicit_declaration}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 */
-	void exitImplicit_declaration(LanguageParser.Implicit_declarationContext ctx);
 	/**
 	 * Enter a parse tree produced by the {@code and}
 	 * labeled alternative in {@link LanguageParser#expression}.

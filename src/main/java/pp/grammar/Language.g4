@@ -1,7 +1,8 @@
 grammar Language;
 
+program: block;
 block: statement+;
-statement: ID ':' TYPE ('=' expression)? ';'    # explicit_declaration
+statement: ID ':' TYPE ('=' expression)? ';'    # explicitDeclaration
          | PRINT expression ';'                 # print
          | conditional                          # cond
          | expression ';'                       # expr
@@ -13,21 +14,21 @@ conditional: IF expression ((LBRACK block RBRACK) | statement)
              (ELSE expression ((LBRACK block RBRACK) | statement))?;
 whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
 expression: literal                         # exprLit
-          | ID                              # exprId
-          | ID ':=' expression              # implicit_declaration
+          | ID ':=' expression              # implicitDeclaration
           | ID '=' expression               # assignment
+          | ID                              # exprId
           | LPAR expression RPAR            # par
           | expression ADD expression       # addition
           | expression TIMES expression     # multiplication
-          | expression SUB expression       # substraction
-          | expression AND expression       # and
-          | expression OR expression        # or
-          | expression EQUAL expression     # equal
-          | expression NOT_EQUAL expression # notEqual
+          | expression SUB expression       # subtraction
           | expression LT expression        # lt
           | expression GT expression        # gt
           | expression LE expression        # le
-          | expression GE expression        # ge;
+          | expression GE expression        # ge
+          | expression EQUAL expression     # equal
+          | expression NOT_EQUAL expression # notEqual
+          | expression AND expression       # and
+          | expression OR expression        # or;
 literal: int | bool;
 bool: BOOL;
 int: SUB? INTEGER;
@@ -69,7 +70,7 @@ INTEGER: NUM+;
 ID: ALPHA ALNUM*;
 
 // comments & ws
-COMMENT: '//' ~[\n]* '\n' -> skip;
+COMMENT: '//' ~[\n]* ('\n' | EOF) -> skip;
 WS: [ \t\r\n] -> skip;
 
 fragment ALPHA: 'a'..'z' | 'A'..'Z';
