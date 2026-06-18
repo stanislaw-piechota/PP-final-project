@@ -1,0 +1,11 @@
+// explicit declaration
+var1: int = 0;
+var2: bool = true;
+
+// implicit declaration
+var3 := 1;
+var4 := false;
+
+// uninitialised declaration
+var5: int;
+var6: bool;

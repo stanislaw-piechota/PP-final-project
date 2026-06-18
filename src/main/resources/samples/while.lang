@@ -1,0 +1,7 @@
+// while loop
+while var1 > (var3 = 45) && var5 != 3
+    while true {
+        i = i + 1;
+        print i;
+    }
+    print var1;

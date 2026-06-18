@@ -2,31 +2,32 @@ grammar Language;
 
 block: statement+;
 statement: ID ':' TYPE ('=' expression)? ';'    # explicit_declaration
-         | ID ':=' expression ';'               # implicit_declaration
          | PRINT expression ';'                 # print
          | conditional                          # cond
-         | expression ';'                       # expr;
+         | expression ';'                       # expr
+         | whileLoop                            # while
+         | FORK ID ID (LPAR expression (',' expression)* RPAR)? ';' # threadStart
+         | JOIN ID ';'                          # threadJoin;
 conditional: IF expression ((LBRACK block RBRACK) | statement)
              (ELSEIF expression ((LBRACK block RBRACK) | statement))*
              (ELSE expression ((LBRACK block RBRACK) | statement))?;
+whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
 expression: literal                         # exprLit
           | ID                              # exprId
-          | binaryOp                        # exprBinOp
-          | ID '=' expression               # assignment;
-binaryOp: binaryOp TIMES binaryOp           # multiplication
-        | binaryOp ADD binaryOp             # addition
-        | binaryOp SUB binaryOp             # substraction
-        | binaryOp AND binaryOp             # and
-        | binaryOp OR binaryOp              # or
-        | binaryOp EQUAL binaryOp           # equal
-        | binaryOp NOT_EQUAL binaryOp       # notEqual
-        | binaryOp LT binaryOp              # lt
-        | binaryOp GT binaryOp              # gt
-        | binaryOp LE binaryOp              # le
-        | binaryOp GE binaryOp              # ge
-        | LPAR binaryOp RPAR                # par
-        | literal                           # binOpLit
-        | ID                                # binOpId;
+          | ID ':=' expression              # implicit_declaration
+          | ID '=' expression               # assignment
+          | LPAR expression RPAR            # par
+          | expression ADD expression       # addition
+          | expression TIMES expression     # multiplication
+          | expression SUB expression       # substraction
+          | expression AND expression       # and
+          | expression OR expression        # or
+          | expression EQUAL expression     # equal
+          | expression NOT_EQUAL expression # notEqual
+          | expression LT expression        # lt
+          | expression GT expression        # gt
+          | expression LE expression        # le
+          | expression GE expression        # ge;
 literal: int | bool;
 bool: BOOL;
 int: SUB? INTEGER;
@@ -53,6 +54,9 @@ LBRACK: '{';
 RBRACK: '}';
 
 // keywords
+FORK: 'fork';
+JOIN: 'join';
+WHILE: 'while';
 PRINT: 'print';
 IF: 'if';
 ELSEIF: 'elif';
@@ -62,7 +66,7 @@ TYPE: 'int' | 'bool';
 // literals
 BOOL: 'true' | 'false';
 INTEGER: NUM+;
-ID: ALPHA ALNUM+;
+ID: ALPHA ALNUM*;
 
 // comments & ws
 COMMENT: '//' ~[\n]* '\n' -> skip;

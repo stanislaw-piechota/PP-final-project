@@ -24,13 +24,6 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExplicit_declaration(LanguageParser.Explicit_declarationContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code implicit_declaration}
-	 * labeled alternative in {@link LanguageParser#statement}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitImplicit_declaration(LanguageParser.Implicit_declarationContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code print}
 	 * labeled alternative in {@link LanguageParser#statement}.
 	 * @param ctx the parse tree
@@ -52,11 +45,108 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr(LanguageParser.ExprContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code while}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhile(LanguageParser.WhileContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code threadStart}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitThreadStart(LanguageParser.ThreadStartContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code threadJoin}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitThreadJoin(LanguageParser.ThreadJoinContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link LanguageParser#conditional}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitConditional(LanguageParser.ConditionalContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link LanguageParser#whileLoop}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitWhileLoop(LanguageParser.WhileLoopContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code par}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPar(LanguageParser.ParContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code or}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOr(LanguageParser.OrContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code assignment}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAssignment(LanguageParser.AssignmentContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code lt}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLt(LanguageParser.LtContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code notEqual}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitNotEqual(LanguageParser.NotEqualContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code substraction}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitSubstraction(LanguageParser.SubstractionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code gt}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitGt(LanguageParser.GtContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code equal}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitEqual(LanguageParser.EqualContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code implicit_declaration}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitImplicit_declaration(LanguageParser.Implicit_declarationContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code and}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAnd(LanguageParser.AndContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code exprLit}
 	 * labeled alternative in {@link LanguageParser#expression}.
@@ -72,113 +162,29 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExprId(LanguageParser.ExprIdContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code exprBinOp}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExprBinOp(LanguageParser.ExprBinOpContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code assignment}
-	 * labeled alternative in {@link LanguageParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAssignment(LanguageParser.AssignmentContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code par}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitPar(LanguageParser.ParContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binOpId}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinOpId(LanguageParser.BinOpIdContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code or}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitOr(LanguageParser.OrContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code lt}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitLt(LanguageParser.LtContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code notEqual}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitNotEqual(LanguageParser.NotEqualContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code substraction}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitSubstraction(LanguageParser.SubstractionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code binOpLit}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitBinOpLit(LanguageParser.BinOpLitContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code gt}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitGt(LanguageParser.GtContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code equal}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitEqual(LanguageParser.EqualContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code and}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAnd(LanguageParser.AndContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code le}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
+	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitLe(LanguageParser.LeContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code multiplication}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
+	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitMultiplication(LanguageParser.MultiplicationContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code ge}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
+	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitGe(LanguageParser.GeContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code addition}
-	 * labeled alternative in {@link LanguageParser#binaryOp}.
+	 * labeled alternative in {@link LanguageParser#expression}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */

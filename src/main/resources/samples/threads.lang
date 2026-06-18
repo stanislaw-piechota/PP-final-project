@@ -1,0 +1,6 @@
+// TODO: add functions
+
+fork thread1 func; // no parameters
+fork thread2 func (1, var1+1);
+join thread1;
+join thread2;

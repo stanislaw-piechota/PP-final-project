@@ -1,0 +1,11 @@
+// binary operations
+1 + 2;
+2 * 3;
+2 + 3 * 4;
+
+// boolean operations
+true && false;
+(1 || var2) && var3;
+
+// expression with assignment
+(var2 = 3) * 4 + (var4 := 1);

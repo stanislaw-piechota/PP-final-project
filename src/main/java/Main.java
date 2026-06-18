@@ -12,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class Main extends LanguageBaseListener {
-    public final static String PATH = "src/main/java/pp/samples/example";
+    public final static String PATH = "src/main/resources/samples/print.lang";
 
     public static void main(String[] args) throws IOException {
         CharStream chars = CharStreams.fromPath(new File(PATH).toPath());
