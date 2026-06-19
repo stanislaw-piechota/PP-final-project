@@ -19,7 +19,7 @@ extra-source-files:
 library
   exposed-modules:
       MyCodeGen
-      MyParser
+      ParseJSON
   other-modules:
       Paths_my_lang
   hs-source-dirs:

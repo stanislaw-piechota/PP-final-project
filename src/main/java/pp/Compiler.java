@@ -196,7 +196,7 @@ public class Compiler extends LanguageBaseListener {
             );
         else {
             expressions.put(ctx, value);
-            builder.append(String.format("{\"get\": {\"children\":[\"%s\"]}},", varName));
+            builder.append(String.format("{\"get\":{\"children\":[\"%s\"]}},", varName));
         }
     }
 

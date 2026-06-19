@@ -18,8 +18,8 @@ expression: literal                         # exprLit
           | ID '=' expression               # assignment
           | ID                              # exprId
           | LPAR expression RPAR            # par
-          | expression ADD expression       # addition
           | expression TIMES expression     # multiplication
+          | expression ADD expression       # addition
           | expression SUB expression       # subtraction
           | expression LT expression        # lt
           | expression GT expression        # gt

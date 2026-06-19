@@ -1277,24 +1277,24 @@ public class LanguageParser extends Parser {
 					switch ( getInterpreter().adaptivePredict(_input,12,_ctx) ) {
 					case 1:
 						{
-						_localctx = new AdditionContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new MultiplicationContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(122);
 						if (!(precpred(_ctx, 11))) throw new FailedPredicateException(this, "precpred(_ctx, 11)");
 						setState(123);
-						match(ADD);
+						match(TIMES);
 						setState(124);
 						expression(12);
 						}
 						break;
 					case 2:
 						{
-						_localctx = new MultiplicationContext(new ExpressionContext(_parentctx, _parentState));
+						_localctx = new AdditionContext(new ExpressionContext(_parentctx, _parentState));
 						pushNewRecursionContext(_localctx, _startState, RULE_expression);
 						setState(125);
 						if (!(precpred(_ctx, 10))) throw new FailedPredicateException(this, "precpred(_ctx, 10)");
 						setState(126);
-						match(TIMES);
+						match(ADD);
 						setState(127);
 						expression(11);
 						}
@@ -1705,8 +1705,8 @@ public class LanguageParser extends Parser {
 		"\u0000\u0000wy\u0001\u0000\u0000\u0000xk\u0001\u0000\u0000\u0000xm\u0001"+
 		"\u0000\u0000\u0000xp\u0001\u0000\u0000\u0000xs\u0001\u0000\u0000\u0000"+
 		"xt\u0001\u0000\u0000\u0000y\u009d\u0001\u0000\u0000\u0000z{\n\u000b\u0000"+
-		"\u0000{|\u0005\u000e\u0000\u0000|\u009c\u0003\n\u0005\f}~\n\n\u0000\u0000"+
-		"~\u007f\u0005\u0010\u0000\u0000\u007f\u009c\u0003\n\u0005\u000b\u0080"+
+		"\u0000{|\u0005\u0010\u0000\u0000|\u009c\u0003\n\u0005\f}~\n\n\u0000\u0000"+
+		"~\u007f\u0005\u000e\u0000\u0000\u007f\u009c\u0003\n\u0005\u000b\u0080"+
 		"\u0081\n\t\u0000\u0000\u0081\u0082\u0005\u000f\u0000\u0000\u0082\u009c"+
 		"\u0003\n\u0005\n\u0083\u0084\n\b\u0000\u0000\u0084\u0085\u0005\t\u0000"+
 		"\u0000\u0085\u009c\u0003\n\u0005\t\u0086\u0087\n\u0007\u0000\u0000\u0087"+
