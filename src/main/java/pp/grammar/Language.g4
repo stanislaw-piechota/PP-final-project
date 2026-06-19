@@ -9,9 +9,10 @@ statement: ID ':' TYPE ('=' expression)? ';'    # explicitDeclaration
          | whileLoop                            # while
          | FORK ID ID (LPAR expression (',' expression)* RPAR)? ';' # threadStart
          | JOIN ID ';'                          # threadJoin;
-conditional: IF expression ((LBRACK block RBRACK) | statement)
-             (ELSEIF expression ((LBRACK block RBRACK) | statement))*
-             (ELSE expression ((LBRACK block RBRACK) | statement))?;
+conditional: if elseif* else?;
+if: IF expression ((LBRACK block RBRACK) | statement);
+elseif: ELSEIF expression ((LBRACK block RBRACK) | statement);
+else: ELSE ((LBRACK block RBRACK) | statement);
 whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
 expression: literal                         # exprLit
           | ID ':=' expression              # implicitDeclaration

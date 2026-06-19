@@ -1,12 +1,11 @@
 package pp;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeProperty;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import pp.errors.ErrorListener;
-import pp.grammar.LanguageBaseListener;
+import pp.grammar.LanguageBaseVisitor;
 import pp.grammar.LanguageParser;
+import pp.helpers.CustomStringBuilder;
 import pp.types.OpName;
 import pp.types.Operations;
 import pp.types.Type;
@@ -17,14 +16,14 @@ import java.util.Map;
 
 import static pp.types.OpName.*;
 
-public class Compiler extends LanguageBaseListener {
+public class Compiler extends LanguageBaseVisitor<Type> {
     private final ErrorListener errorListener = new ErrorListener();
-    private final ParseTreeProperty<Type> expressions = new ParseTreeProperty<>();
     private final Map<String, Type> variables = new HashMap<>();
-    private final StringBuilder builder = new StringBuilder();
+
+    private final CustomStringBuilder builder = new CustomStringBuilder();
 
     public String compile(ParseTree tree) {
-        new ParseTreeWalker().walk(this, tree);
+        visit(tree);
 
         if (errorListener.hasErrors()) {
             System.err.println(errorListener.getErrors());
@@ -35,29 +34,23 @@ public class Compiler extends LanguageBaseListener {
     }
 
     @Override
-    public void enterProgram(LanguageParser.ProgramContext ctx) {
+    public Type visitProgram(LanguageParser.ProgramContext ctx) {
         builder.append("{\"program\":{\"children\":[");
-    }
-
-    @Override
-    public void exitProgram(LanguageParser.ProgramContext ctx) {
-        if (builder.charAt(builder.length() - 1) == ',')
-            builder.deleteCharAt(builder.length() - 1); // remove last comma
+        visit(ctx.block());
         builder.append("]}}");
+
+        return null;
     }
 
     @Override
-    public void enterExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx) {
+    public Type visitExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx) {
         String varName = ctx.ID().getText();
         String varType = ctx.TYPE().getText();
-        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"type\":\"%s\",\"children\":[", varName, varType));
-    }
+        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"type\":\"%s\",\"children\":[", varName, varType), false);
 
-    @Override
-    public void exitExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx) {
-        String varName = ctx.ID().getText();
-        String varType = ctx.TYPE().getText();
-        Type value = expressions.get(ctx.expression());
+        Type value = null;
+        if (ctx.expression() != null)
+            value = visit(ctx.expression());
 
         if (value == null || !value.valuePresent())
             value = new Type(TypeName.fromTypeName(varType), false);
@@ -75,22 +68,16 @@ public class Compiler extends LanguageBaseListener {
 
         variables.put(varName, value);
 
-        if (builder.charAt(builder.length() - 1) == ',')
-            builder.deleteCharAt(builder.length() - 1);
         builder.append("]}},");
+        return null;
     }
 
     @Override
-    public void enterImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx) {
+    public Type visitImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx) {
         String varName = ctx.ID().getText();
-        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"children\":[", varName));
-    }
+        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"children\":[", varName), false);
 
-    @Override
-    public void exitImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx) {
-        String varName = ctx.ID().getText();
-        Type value = expressions.get(ctx.expression());
-
+        Type value = visit(ctx.expression());
         if (value == null || !value.valuePresent())
             errorListener.syntaxError(
                     ctx.expression().getStart(),
@@ -102,50 +89,44 @@ public class Compiler extends LanguageBaseListener {
                     String.format("invalid redeclaration of variable `%s`", varName)
             );
         else {
-            if (builder.charAt(builder.length() - 1) == ',')
-                builder.deleteCharAt(builder.length() - 1);
             builder.append(String.format("],\"type\":\"%s\"}},", value.type().getTypeName()));
         }
 
         variables.put(varName, value);
-        expressions.put(ctx, value);
+        return value;
     }
 
     @Override
-    public void exitInt(LanguageParser.IntContext ctx) {
-        expressions.put(ctx, new Type(TypeName.INT, true));
-        builder.append(ctx.getText());
+    public Type visitInt(LanguageParser.IntContext ctx) {
+        builder.append(ctx.getText(), false);
+        return new Type(TypeName.INT, true);
     }
 
     @Override
-    public void exitBool(LanguageParser.BoolContext ctx) {
-        expressions.put(ctx, new Type(TypeName.BOOL, true));
-        builder.append(ctx.getText());
+    public Type visitBool(LanguageParser.BoolContext ctx) {
+        builder.append(ctx.getText(), false);
+        return new Type(TypeName.BOOL, true);
     }
 
     @Override
-    public void exitLiteral(LanguageParser.LiteralContext ctx) {
+    public Type visitLiteral(LanguageParser.LiteralContext ctx) {
         if (ctx.int_() != null) {
-            expressions.put(ctx, expressions.get(ctx.int_()));
+            return visit(ctx.int_());
         } else if (ctx.bool() != null) {
-            expressions.put(ctx, expressions.get(ctx.bool()));
+            return visit(ctx.bool());
         }
+        return null;
     }
 
     @Override
-    public void exitExprLit(LanguageParser.ExprLitContext ctx) {
-        expressions.put(ctx, expressions.get(ctx.literal()));
+    public Type visitExprLit(LanguageParser.ExprLitContext ctx) {
+        Type value = visit(ctx.literal());
         builder.append(',');
+        return value;
     }
 
     @Override
-    public void enterAssignment(LanguageParser.AssignmentContext ctx) {
-        String varName = ctx.ID().getText();
-        builder.append(String.format("{\"set\":{\"name\":\"%s\",\"children\":[", varName));
-    }
-
-    @Override
-    public void exitAssignment(LanguageParser.AssignmentContext ctx) {
+    public Type visitAssignment(LanguageParser.AssignmentContext ctx) {
         String varName = ctx.ID().getText();
 
         if (variables.get(varName) == null)
@@ -154,8 +135,10 @@ public class Compiler extends LanguageBaseListener {
                     String.format("assignment of undeclared variable `%s`", varName)
             );
 
+        builder.append(String.format("{\"set\":{\"name\":\"%s\",\"children\":[", varName), false);
+
         Type currentValue = variables.get(varName);
-        Type newValue = expressions.get(ctx.expression());
+        Type newValue = visit(ctx.expression());
         if (newValue == null || !newValue.valuePresent())
             errorListener.syntaxError(
                     ctx.expression().getStart(),
@@ -171,16 +154,15 @@ public class Compiler extends LanguageBaseListener {
         else {
             Type newLiteral = new Type(newValue.type(), true);
             variables.put(varName, newLiteral);
-            expressions.put(ctx, newLiteral);
-
-            if (builder.charAt(builder.length() - 1) == ',')
-                builder.deleteCharAt(builder.length() - 1);
             builder.append("]}},");
+            return newLiteral;
         }
+
+        return null;
     }
 
     @Override
-    public void exitExprId(LanguageParser.ExprIdContext ctx) {
+    public Type visitExprId(LanguageParser.ExprIdContext ctx) {
         String varName = ctx.ID().getText();
         Type value = variables.get(varName);
 
@@ -195,139 +177,83 @@ public class Compiler extends LanguageBaseListener {
                     String.format("usage of uninitialised variable `%s`", varName)
             );
         else {
-            expressions.put(ctx, value);
-            builder.append(String.format("{\"get\":{\"children\":[\"%s\"]}},", varName));
+            builder.append(String.format("{\"get\":{\"children\":[\"%s\"]}},", varName), false);
+            return value;
         }
+
+        return null;
     }
 
     @Override
-    public void exitPar(LanguageParser.ParContext ctx) {
-        expressions.put(ctx, expressions.get(ctx.expression()));
+    public Type visitPar(LanguageParser.ParContext ctx) {
+        return visit(ctx.expression());
     }
 
     @Override
-    public void enterAddition(LanguageParser.AdditionContext ctx) {
-        evaluateExprEnter(ADD);
+    public Type visitAddition(LanguageParser.AdditionContext ctx) {
+        return evaluateExprVisit(ADD, ctx.expression(0), ctx.expression(1), ctx.ADD());
     }
 
     @Override
-    public void exitAddition(LanguageParser.AdditionContext ctx) {
-        evaluateExprExit(ADD, ctx, ctx.expression(0), ctx.expression(1), ctx.ADD());
+    public Type visitSubtraction(LanguageParser.SubtractionContext ctx) {
+        return evaluateExprVisit(SUB, ctx.expression(0), ctx.expression(1), ctx.SUB());
     }
 
     @Override
-    public void enterSubtraction(LanguageParser.SubtractionContext ctx) {
-        evaluateExprEnter(SUB);
+    public Type visitMultiplication(LanguageParser.MultiplicationContext ctx) {
+        return evaluateExprVisit(MUL, ctx.expression(0), ctx.expression(1), ctx.TIMES());
     }
 
     @Override
-    public void exitSubtraction(LanguageParser.SubtractionContext ctx) {
-        evaluateExprExit(SUB, ctx, ctx.expression(0), ctx.expression(1), ctx.SUB());
+    public Type visitAnd(LanguageParser.AndContext ctx) {
+        return evaluateExprVisit(AND, ctx.expression(0), ctx.expression(1), ctx.AND());
     }
 
     @Override
-    public void enterMultiplication(LanguageParser.MultiplicationContext ctx) {
-        evaluateExprEnter(MUL);
+    public Type visitOr(LanguageParser.OrContext ctx) {
+        return evaluateExprVisit(OR, ctx.expression(0), ctx.expression(1), ctx.OR());
     }
 
     @Override
-    public void exitMultiplication(LanguageParser.MultiplicationContext ctx) {
-        evaluateExprExit(MUL, ctx, ctx.expression(0), ctx.expression(1), ctx.TIMES());
+    public Type visitEqual(LanguageParser.EqualContext ctx) {
+        return evaluateExprVisit(EQ, ctx.expression(0), ctx.expression(1), ctx.EQUAL());
     }
 
     @Override
-    public void enterAnd(LanguageParser.AndContext ctx) {
-        evaluateExprEnter(AND);
+    public Type visitNotEqual(LanguageParser.NotEqualContext ctx) {
+        return evaluateExprVisit(NEQ, ctx.expression(0), ctx.expression(1), ctx.NOT_EQUAL());
     }
 
     @Override
-    public void exitAnd(LanguageParser.AndContext ctx) {
-        evaluateExprExit(AND, ctx, ctx.expression(0), ctx.expression(1), ctx.AND());
+    public Type visitLt(LanguageParser.LtContext ctx) {
+        return evaluateExprVisit(LT, ctx.expression(0), ctx.expression(1), ctx.LT());
     }
 
     @Override
-    public void enterOr(LanguageParser.OrContext ctx) {
-        evaluateExprEnter(OR);
+    public Type visitGt(LanguageParser.GtContext ctx) {
+        return evaluateExprVisit(GT, ctx.expression(0), ctx.expression(1), ctx.GT());
+    }
+    @Override
+    public Type visitGe(LanguageParser.GeContext ctx) {
+        return evaluateExprVisit(GE, ctx.expression(0), ctx.expression(1), ctx.GE());
     }
 
     @Override
-    public void exitOr(LanguageParser.OrContext ctx) {
-        evaluateExprExit(OR, ctx, ctx.expression(0), ctx.expression(1), ctx.OR());
+    public Type visitLe(LanguageParser.LeContext ctx) {
+        return evaluateExprVisit(LE, ctx.expression(0), ctx.expression(1), ctx.LE());
     }
 
-    @Override
-    public void enterEqual(LanguageParser.EqualContext ctx) {
-        evaluateExprEnter(EQ);
-    }
 
-    @Override
-    public void exitEqual(LanguageParser.EqualContext ctx) {
-        evaluateExprExit(EQ, ctx, ctx.expression(0), ctx.expression(1), ctx.EQUAL());
-    }
-
-    @Override
-    public void enterNotEqual(LanguageParser.NotEqualContext ctx) {
-        evaluateExprEnter(NEQ);
-    }
-
-    @Override
-    public void exitNotEqual(LanguageParser.NotEqualContext ctx) {
-        evaluateExprExit(NEQ, ctx, ctx.expression(0), ctx.expression(1), ctx.NOT_EQUAL());
-    }
-
-    @Override
-    public void enterLt(LanguageParser.LtContext ctx) {
-        evaluateExprEnter(LT);
-    }
-
-    @Override
-    public void exitLt(LanguageParser.LtContext ctx) {
-        evaluateExprExit(LT, ctx, ctx.expression(0), ctx.expression(1), ctx.LT());
-    }
-
-    @Override
-    public void enterGt(LanguageParser.GtContext ctx) {
-        evaluateExprEnter(GT);
-    }
-
-    @Override
-    public void exitGt(LanguageParser.GtContext ctx) {
-        evaluateExprExit(GT, ctx, ctx.expression(0), ctx.expression(1), ctx.GT());
-    }
-
-    @Override
-    public void enterGe(LanguageParser.GeContext ctx) {
-        evaluateExprEnter(GE);
-    }
-
-    @Override
-    public void exitGe(LanguageParser.GeContext ctx) {
-        evaluateExprExit(GE, ctx, ctx.expression(0), ctx.expression(1), ctx.GE());
-    }
-
-    @Override
-    public void enterLe(LanguageParser.LeContext ctx) {
-        evaluateExprEnter(LE);
-    }
-
-    @Override
-    public void exitLe(LanguageParser.LeContext ctx) {
-        evaluateExprExit(LE, ctx, ctx.expression(0), ctx.expression(1), ctx.LE());
-    }
-
-    private void evaluateExprEnter(OpName opName) {
-        builder.append(String.format("{\"%s\":{\"children\":[", opName.getOpName()));
-    }
-
-    private void evaluateExprExit(
+    private Type evaluateExprVisit(
             OpName opName,
-            LanguageParser.ExpressionContext ctx,
             LanguageParser.ExpressionContext leftCtx,
             LanguageParser.ExpressionContext rightCtx,
             TerminalNode opCtx
     ) {
-        Type left = expressions.get(leftCtx);
-        Type right = expressions.get(rightCtx);
+        builder.append(String.format("{\"%s\":{\"children\":[", opName.getOpName()), false);
+
+        Type left = visit(leftCtx);
+        Type right = visit(rightCtx);
         TypeName result;
 
         if (left == null || !left.valuePresent())
@@ -346,22 +272,75 @@ public class Compiler extends LanguageBaseListener {
                     "type mismatch in operation"
             );
         else {
-            expressions.put(ctx, new Type(result, true));
-            if (builder.charAt(builder.length() - 1) == ',')
-                builder.deleteCharAt(builder.length() - 1);
             builder.append("]}},");
+            return new Type(result, true);
         }
+
+        return null;
     }
 
     @Override
-    public void enterPrint(LanguageParser.PrintContext ctx) {
-        builder.append("{\"print\":{\"children\":[");
+    public Type visitPrint(LanguageParser.PrintContext ctx) {
+        builder.append("{\"print\":{\"children\":[", false);
+        visit(ctx.expression());
+        builder.append("]}}");
+
+        return null;
     }
 
     @Override
-    public void exitPrint(LanguageParser.PrintContext ctx) {
-        if (builder.charAt(builder.length() - 1) == ',')
-            builder.deleteCharAt(builder.length() - 1);
+    public Type visitConditional(LanguageParser.ConditionalContext ctx) {
+        builder.append('{');
+        visit(ctx.if_());
+
+        builder.append("\"elifs\":[", false);
+        for (LanguageParser.ElseifContext elseif : ctx.elseif()) {
+            visit(elseif);
+        }
+        builder.append("],\"else\":{");
+        if (ctx.else_() != null)
+            visit(ctx.else_());
+        builder.append("}},");
+        return null;
+    }
+
+    @Override
+    public Type visitIf (LanguageParser.IfContext ctx) {
+        builder.append("\"if\":{\"cond\":{\"children\":[", false);
+        visit(ctx.expression());
+        builder.append("]},\"children\":[");
+
+        if (ctx.statement() != null) {
+            visit(ctx.statement());
+        } else
+            visit(ctx.block());
+
+        builder.append("]},");
+        return null;
+    }
+
+    @Override
+    public Type visitElseif (LanguageParser.ElseifContext ctx) {
+        builder.append("{\"elif\":{\"cond\":{\"children\":[", false);
+        visit(ctx.expression());
+        builder.append("]},\"children\":[");
+
+        if (ctx.statement() != null) {
+            visit(ctx.statement());
+        } else
+            visit(ctx.block());
         builder.append("]}},");
+        return null;
+    }
+
+    @Override
+    public Type visitElse(LanguageParser.ElseContext ctx) {
+        builder.append("\"children\":[", false);
+        if (ctx.statement() != null) {
+            visit(ctx.statement());
+        } else
+            visit(ctx.block());
+        builder.append("],");
+        return null;
     }
 }

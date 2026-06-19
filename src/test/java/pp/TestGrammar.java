@@ -5,7 +5,6 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pp.errors.ErrorListener;
@@ -24,7 +23,7 @@ public class TestGrammar {
         success("assignments");
         success("expressions");
         success("print");
-//        success("conditionals");
+        success("conditionals");
 //        success("while");
 //        success("threads");
 //        fail("expressions_mismatch");

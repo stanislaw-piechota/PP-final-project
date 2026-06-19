@@ -122,6 +122,36 @@ public interface LanguageListener extends ParseTreeListener {
 	 */
 	void exitConditional(LanguageParser.ConditionalContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link LanguageParser#if}.
+	 * @param ctx the parse tree
+	 */
+	void enterIf(LanguageParser.IfContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LanguageParser#if}.
+	 * @param ctx the parse tree
+	 */
+	void exitIf(LanguageParser.IfContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link LanguageParser#elseif}.
+	 * @param ctx the parse tree
+	 */
+	void enterElseif(LanguageParser.ElseifContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LanguageParser#elseif}.
+	 * @param ctx the parse tree
+	 */
+	void exitElseif(LanguageParser.ElseifContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link LanguageParser#else}.
+	 * @param ctx the parse tree
+	 */
+	void enterElse(LanguageParser.ElseContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link LanguageParser#else}.
+	 * @param ctx the parse tree
+	 */
+	void exitElse(LanguageParser.ElseContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link LanguageParser#whileLoop}.
 	 * @param ctx the parse tree
 	 */
