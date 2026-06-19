@@ -352,4 +352,16 @@ public class Compiler extends LanguageBaseListener {
             builder.append("]}},");
         }
     }
+
+    @Override
+    public void enterPrint(LanguageParser.PrintContext ctx) {
+        builder.append("{\"print\":{\"children\":[");
+    }
+
+    @Override
+    public void exitPrint(LanguageParser.PrintContext ctx) {
+        if (builder.charAt(builder.length() - 1) == ',')
+            builder.deleteCharAt(builder.length() - 1);
+        builder.append("]}},");
+    }
 }

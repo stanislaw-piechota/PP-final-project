@@ -23,7 +23,7 @@ public class TestGrammar {
         success("declarations");
         success("assignments");
         success("expressions");
-//        success("print");
+        success("print");
 //        success("conditionals");
 //        success("while");
 //        success("threads");

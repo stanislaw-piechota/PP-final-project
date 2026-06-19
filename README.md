@@ -149,7 +149,7 @@ The schema look like the following
 | Variables                 | ✅        | ❌       |
 | Arithmetics op.           | ✅        | ❌       |
 | Boolean op.               | ✅        | ❌       |
-| Print                     | ❌        | ❌       |
+| Print                     | ✅        | ❌       |
 | Conditionals              | ❌        | ❌       |
 | While loop                | ❌        | ❌       |
 | Functions (+1.0)          | ❌        | ❌       |
