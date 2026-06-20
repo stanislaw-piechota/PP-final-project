@@ -19,7 +19,7 @@ elseif: ELSEIF expression ((LBRACK block RBRACK) | statement);
 else: ELSE ((LBRACK block RBRACK) | statement);
 whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
 expression: literal                         # exprLit
-          | ID LPAR (expression (',' expression)*)? # funcCall
+          | ID LPAR (expression (',' expression)*)? RPAR # funcCall
           | ID                              # exprId
           | LPAR expression RPAR            # par
           | expression TIMES expression     # multiplication

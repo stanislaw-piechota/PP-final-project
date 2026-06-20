@@ -452,4 +452,35 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         builder.append("]}},");
         return value;
     }
+
+    @Override
+    public Type visitFuncCall(LanguageParser.FuncCallContext ctx) {
+        String funcName = ctx.ID().getText();
+        Coordinate coordinate = symbolTable.get(funcName);
+
+        if (coordinate == null) {
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("undefined function call `%s`", funcName)
+            );
+            return null;
+        }
+
+        Type funcSign = coordinate.type();
+
+        builder.append(String.format("{\"call\":{\"name\":\"%s\",\"type\":\"%s\",\"args\":[",
+                funcName, funcSign.returnType()), false);
+        for (int i=0; i<ctx.expression().size(); i++) {
+            Type argType = visit(ctx.expression(i));
+            if (argType.typeName() != funcSign.getArgs().get(i))
+                errorListener.syntaxError(
+                        ctx.expression(i).getStart(),
+                        String.format("argument type mismatch (declared `%s`, actual `%s)`",
+                                argType.typeName(), funcSign.getArgs().get(i))
+                );
+        }
+        builder.append("]}},");
+
+        return new Type(funcSign.returnType(), true);
+    }
 }

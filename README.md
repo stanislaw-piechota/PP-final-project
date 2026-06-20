@@ -152,7 +152,7 @@ The schema look like the following
 | Print                     | ✅        | ❌       |
 | Conditionals              | ✅        | ❌       |
 | While loop                | ✅        | ❌       |
-| Functions (+1.0)          | ❌        | ❌       |
+| Functions (+1.0)          | ✅        | ❌       |
 | Threads                   | ❌        | ❌       |
 | Locks                     | ❌        | ❌       |
 | Pointers (+1.0)           | ❌        | ❌       |

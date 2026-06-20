@@ -22,6 +22,10 @@ public class Type {
         this.returnType = typeName;
     }
 
+    public List<TypeName> getArgs() {
+        return args;
+    }
+
     public TypeName typeName() {
         return typeName;
     }
