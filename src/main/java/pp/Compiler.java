@@ -11,14 +11,11 @@ import pp.types.Operations;
 import pp.types.Type;
 import pp.types.TypeName;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static pp.types.OpName.*;
 
 public class Compiler extends LanguageBaseVisitor<Type> {
     private final ErrorListener errorListener = new ErrorListener();
-    private final Map<String, Type> variables = new HashMap<>();
+    private final SymbolTable symbolTable = new SymbolTable();
 
     private final CustomStringBuilder builder = new CustomStringBuilder();
 
@@ -60,13 +57,13 @@ public class Compiler extends LanguageBaseVisitor<Type> {
                     String.format("type mismatch (expected `%s`, actual `%s`)", varType, value.type().getTypeName())
             );
 
-        if (variables.get(varName) != null)
+        if (symbolTable.getLatest(varName) != null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("invalid redeclaration of variable `%s`", varName)
             );
-
-        variables.put(varName, value);
+        else
+            symbolTable.put(varName, value);
 
         builder.append("]}},");
         return null;
@@ -83,16 +80,16 @@ public class Compiler extends LanguageBaseVisitor<Type> {
                     ctx.expression().getStart(),
                     String.format("attempted type inference of variable `%s` with undefined literal", varName)
             );
-        else if (variables.get(varName) != null)
+        else if (symbolTable.getLatest(varName) != null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("invalid redeclaration of variable `%s`", varName)
             );
         else {
             builder.append(String.format("],\"type\":\"%s\"}},", value.type().getTypeName()));
+            symbolTable.put(varName, value);
         }
 
-        variables.put(varName, value);
         return value;
     }
 
@@ -129,7 +126,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     public Type visitAssignment(LanguageParser.AssignmentContext ctx) {
         String varName = ctx.ID().getText();
 
-        if (variables.get(varName) == null)
+        if (symbolTable.get(varName) == null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("assignment of undeclared variable `%s`", varName)
@@ -137,7 +134,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
 
         builder.append(String.format("{\"set\":{\"name\":\"%s\",\"children\":[", varName), false);
 
-        Type currentValue = variables.get(varName);
+        Type currentValue = symbolTable.get(varName);
         Type newValue = visit(ctx.expression());
         if (newValue == null || !newValue.valuePresent())
             errorListener.syntaxError(
@@ -153,7 +150,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
             );
         else {
             Type newLiteral = new Type(newValue.type(), true);
-            variables.put(varName, newLiteral);
+            symbolTable.put(varName, newLiteral, false);
             builder.append("]}},");
             return newLiteral;
         }
@@ -164,7 +161,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitExprId(LanguageParser.ExprIdContext ctx) {
         String varName = ctx.ID().getText();
-        Type value = variables.get(varName);
+        Type value = symbolTable.get(varName);
 
         if (value == null)
             errorListener.syntaxError(
@@ -310,10 +307,12 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         visit(ctx.expression());
         builder.append("]},\"children\":[");
 
+        symbolTable.addLevel();
         if (ctx.statement() != null) {
             visit(ctx.statement());
         } else
             visit(ctx.block());
+        symbolTable.removeLevel();
 
         builder.append("]},");
         return null;
@@ -325,10 +324,13 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         visit(ctx.expression());
         builder.append("]},\"children\":[");
 
+        symbolTable.addLevel();
         if (ctx.statement() != null) {
             visit(ctx.statement());
         } else
             visit(ctx.block());
+        symbolTable.removeLevel();
+
         builder.append("]}},");
         return null;
     }
@@ -336,10 +338,14 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitElse(LanguageParser.ElseContext ctx) {
         builder.append("\"children\":[", false);
+
+        symbolTable.addLevel();
         if (ctx.statement() != null) {
             visit(ctx.statement());
         } else
             visit(ctx.block());
+        symbolTable.removeLevel();
+
         builder.append("],");
         return null;
     }
