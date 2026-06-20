@@ -20,7 +20,7 @@ import java.nio.file.Paths;
 
 public class Main extends LanguageBaseListener {
     public final static String PATH = "src/main/resources/samples/";
-    public final static String INPUT_PATH = PATH + "conditionals.lang";
+    public final static String INPUT_PATH = PATH + "while.lang";
     public final static String OUTPUT_PATH = PATH + "output.json";
     public static final Path STACK_PATH = Paths.get("stack");
     public static final boolean COMPILE = false;

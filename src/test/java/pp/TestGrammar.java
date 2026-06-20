@@ -24,7 +24,7 @@ public class TestGrammar {
         success("expressions");
         success("print");
         success("conditionals");
-//        success("while");
+        success("while");
 //        success("threads");
 //        fail("expressions_mismatch");
     }

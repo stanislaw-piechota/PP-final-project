@@ -136,7 +136,12 @@ public class Compiler extends LanguageBaseVisitor<Type> {
 
         Type currentValue = symbolTable.get(varName);
         Type newValue = visit(ctx.expression());
-        if (newValue == null || !newValue.valuePresent())
+        if (currentValue == null)
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("attempted reference of undefined variable `%s`", varName)
+            );
+        else if (newValue == null || !newValue.valuePresent())
             errorListener.syntaxError(
                     ctx.expression().getStart(),
                     String.format("attempted assignment of undefined literal to variable `%s`", varName)
@@ -306,14 +311,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         builder.append("\"if\":{\"cond\":{\"children\":[", false);
         visit(ctx.expression());
         builder.append("]},\"children\":[");
-
-        symbolTable.addLevel();
-        if (ctx.statement() != null) {
-            visit(ctx.statement());
-        } else
-            visit(ctx.block());
-        symbolTable.removeLevel();
-
+        visitBlock(ctx.statement(), ctx.block());
         builder.append("]},");
         return null;
     }
@@ -323,14 +321,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         builder.append("{\"elif\":{\"cond\":{\"children\":[", false);
         visit(ctx.expression());
         builder.append("]},\"children\":[");
-
-        symbolTable.addLevel();
-        if (ctx.statement() != null) {
-            visit(ctx.statement());
-        } else
-            visit(ctx.block());
-        symbolTable.removeLevel();
-
+        visitBlock(ctx.statement(), ctx.block());
         builder.append("]}},");
         return null;
     }
@@ -338,15 +329,27 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitElse(LanguageParser.ElseContext ctx) {
         builder.append("\"children\":[", false);
-
-        symbolTable.addLevel();
-        if (ctx.statement() != null) {
-            visit(ctx.statement());
-        } else
-            visit(ctx.block());
-        symbolTable.removeLevel();
-
+        visitBlock(ctx.statement(), ctx.block());
         builder.append("],");
         return null;
+    }
+
+    @Override
+    public Type visitWhileLoop(LanguageParser.WhileLoopContext ctx) {
+        builder.append("{\"while\":{\"cond\":{\"children\":[",false);
+        visit(ctx.expression());
+        builder.append("]},\"children\":[");
+        visitBlock(ctx.statement(), ctx.block());
+        builder.append("]}},");
+        return null;
+    }
+
+    private void visitBlock(LanguageParser.StatementContext stmnt, LanguageParser.BlockContext block) {
+        symbolTable.addLevel();
+        if (stmnt != null) {
+            visit(stmnt);
+        } else
+            visit(block);
+        symbolTable.removeLevel();
     }
 }
