@@ -37,9 +37,9 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
 
     @Override
     public Type visitProgram(LanguageParser.ProgramContext ctx) {
-        builder.append("{\"program\":{\"children\":[");
+        builder.append("{\"program\":[");
         visit(ctx.block());
-        builder.append("]}}");
+        builder.append("]}");
 
         return null;
     }
@@ -48,11 +48,13 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
     public Type visitExplicitDeclaration(LanguageParser.ExplicitDeclarationContext ctx) {
         String varName = ctx.ID().getText();
         String varType = ctx.TYPE().getText();
-        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"type\":\"%s\",\"children\":[", varName, varType), false);
+        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"type\":\"%s\",\"expr\":", varName, varType), false);
 
         Type value = null;
         if (ctx.expression() != null)
             value = visit(ctx.expression());
+        else
+            builder.append("null", false);
 
         if (value == null || value.empty())
             value = new Type(TypeName.fromTypeName(varType), false);
@@ -69,7 +71,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             );
         else {
             Coordinate newCoordinate = symbolTable.put(varName, value);
-            builder.append(String.format("],\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+            builder.append(String.format(",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
                     newCoordinate.level(), newCoordinate.offset()));
         }
 
@@ -79,7 +81,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitImplicitDeclaration(LanguageParser.ImplicitDeclarationContext ctx) {
         String varName = ctx.ID().getText();
-        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"children\":[", varName), false);
+        builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"expr\":", varName), false);
 
         Type value = visit(ctx.expression());
         if (value == null || value.empty())
@@ -94,7 +96,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             );
         else {
             Coordinate newCoordinate = symbolTable.put(varName, value);
-            builder.append(String.format("],\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+            builder.append(String.format(",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
                     value.typeName().toString(), newCoordinate.level(), newCoordinate.offset()));
         }
 
@@ -141,7 +143,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
                     String.format("assignment of undeclared variable `%s`", varName)
             );
 
-        builder.append(String.format("{\"set\":{\"name\":\"%s\",\"children\":[", varName), false);
+        builder.append(String.format("{\"set\":{\"name\":\"%s\",\"expr\":", varName), false);
 
         Type newValue = visit(ctx.expression());
         if (currentValue == null)
@@ -164,7 +166,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
         else {
             Type newLiteral = new Type(newValue.typeName(), true);
             Coordinate coordinate = symbolTable.put(varName, newLiteral, false);
-            builder.append(String.format("],\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+            builder.append(String.format(",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
                     coordinate.level(), coordinate.offset()));
             return newLiteral;
         }
@@ -262,7 +264,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             LanguageParser.ExpressionContext rightCtx,
             TerminalNode opCtx
     ) {
-        builder.append(String.format("{\"%s\":{\"children\":[", opName.getOpName()), false);
+        builder.append(String.format("{\"%s\":[", opName.getOpName()), false);
 
         Type left = visit(leftCtx);
         Type right = visit(rightCtx);
@@ -284,7 +286,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
                     "type mismatch in operation"
             );
         else {
-            builder.append("]}},");
+            builder.append("]},");
             return new Type(result, true);
         }
 
@@ -293,7 +295,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
 
     @Override
     public Type visitPrint(LanguageParser.PrintContext ctx) {
-        builder.append("{\"print\":{\"children\":[", false);
+        builder.append("{\"print\":", false);
         Type value = visit(ctx.expression());
         if (value == null || value.empty())
             errorListener.syntaxError(
@@ -305,7 +307,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
                     ctx.expression().getStart(),
                     String.format("unable to print expression of type `%s`", value.typeName().toString())
             );
-        builder.append("]}}");
+        builder.append("},");
 
         return null;
     }
@@ -319,18 +321,20 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
         for (LanguageParser.ElseifContext elseif : ctx.elseif()) {
             visit(elseif);
         }
-        builder.append("],\"else\":{");
+        builder.append("],\"else\":");
         if (ctx.else_() != null)
             visit(ctx.else_());
-        builder.append("}},");
+        else
+            builder.append("null", false);
+        builder.append("},");
         return null;
     }
 
     @Override
     public Type visitIf (LanguageParser.IfContext ctx) {
-        builder.append("\"if\":{\"cond\":{\"children\":[", false);
+        builder.append("\"if\":{\"cond\":", false);
         visit(ctx.expression());
-        builder.append("]},\"children\":[");
+        builder.append(",\"children\":[");
         visitBlock(ctx.statement(), ctx.block());
         builder.append("]},");
         return null;
@@ -338,27 +342,27 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
 
     @Override
     public Type visitElseif (LanguageParser.ElseifContext ctx) {
-        builder.append("{\"elif\":{\"cond\":{\"children\":[", false);
+        builder.append("{\"cond\":", false);
         visit(ctx.expression());
-        builder.append("]},\"children\":[");
+        builder.append(",\"children\":[");
         visitBlock(ctx.statement(), ctx.block());
-        builder.append("]}},");
+        builder.append("]},");
         return null;
     }
 
     @Override
     public Type visitElse(LanguageParser.ElseContext ctx) {
-        builder.append("\"children\":[", false);
+        builder.append("{\"children\":[", false);
         visitBlock(ctx.statement(), ctx.block());
-        builder.append("],");
+        builder.append("]},");
         return null;
     }
 
     @Override
     public Type visitWhileLoop(LanguageParser.WhileLoopContext ctx) {
-        builder.append("{\"while\":{\"cond\":{\"children\":[",false);
+        builder.append("{\"while\":{\"cond\":",false);
         visit(ctx.expression());
-        builder.append("]},\"children\":[");
+        builder.append(",\"children\":[");
         visitBlock(ctx.statement(), ctx.block());
         builder.append("]}},");
         return null;
@@ -446,9 +450,9 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
                     "return outside of function context"
             );
 
-        builder.append("{\"return\":{\"children\":[", false);
+        builder.append("{\"return\":", false);
         Type value = visit(ctx.expression());
-        builder.append("]}},");
+        builder.append("},");
         return value;
     }
 
