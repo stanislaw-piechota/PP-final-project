@@ -27,7 +27,8 @@ public enum Operation {
             new OpType(VOID, INT),
             new OpType(VOID, BOOL)
     )),
-    FORK("fork", List.of(new OpType(INT, FUNC))),;
+    FORK("fork", List.of(new OpType(INT, FUNC))),
+    JOIN("join", List.of(new OpType(VOID, INT)));
 
     private final String opName;
     private final List<OpType> ops;

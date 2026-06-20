@@ -153,7 +153,7 @@ The schema look like the following
 | Conditionals              | ✅        | ❌       |
 | While loop                | ✅        | ❌       |
 | Functions (+1.0)          | ✅        | ❌       |
-| Threads                   | ❌        | ❌       |
+| Threads                   | ✅        | ❌       |
 | Locks                     | ❌        | ❌       |
 | Pointers (+1.0)           | ❌        | ❌       |
 | Arrays (+1.0)             | ❌        | ❌       |

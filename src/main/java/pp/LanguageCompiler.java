@@ -528,10 +528,37 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
         if (resultType == null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
-                    String.format("invalid argument type (actual `%s`)", funcSign.typeName())
+                    String.format("invalid argument type (expected `function`, actual `%s`)", funcSign.typeName())
             );
 
         builder.append("]}},");
-        return new Type(INT, true);
+        return new Type(resultType, true);
+    }
+
+    @Override
+    public Type visitThreadJoin(LanguageParser.ThreadJoinContext ctx) {
+        builder.append("{\"join\":", false);
+        String threadId = ctx.ID().getText();
+        Coordinate coordinate = symbolTable.get(threadId);
+
+        if (coordinate == null) {
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("undefined thread id `%s`", threadId)
+            );
+            return null;
+        }
+
+        TypeName resultType = JOIN.getResultType(coordinate.type().typeName());
+        if (resultType == null)
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("type mismatch (expected `int`, actual `%s`)", coordinate.type().typeName())
+            );
+
+        builder.append(String.format(
+                "{\"get\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":\"%s\",\"offset\":\"%s\"}}}},",
+                threadId, coordinate.type().typeName(), coordinate.level(), coordinate.offset()));
+        return null;
     }
 }

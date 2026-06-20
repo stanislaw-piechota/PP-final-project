@@ -20,7 +20,7 @@ public class SymbolTable {
     }
 
     public void removeScope() {
-        if (level.size() > 1) {
+        if (stack.size() > 1) {
             stack.pop();
             level = stack.peek();
         }

@@ -25,7 +25,10 @@ public class TestGrammar {
         success("print");
         success("conditionals");
         success("while");
-//        success("threads");
+        success("func_basics");
+        success("func_call");
+        success("func_in_func");
+        success("threads");
         fail("expressions_mismatch");
     }
 
