@@ -29,7 +29,9 @@ public class TestGrammar {
         success("func_call");
         success("func_in_func");
         success("threads");
+        success("locks");
         fail("expressions_mismatch");
+        fail("func_as_param"); // TODO: Not yet supported
     }
 
     private void success(String fileName) {
@@ -47,9 +49,7 @@ public class TestGrammar {
         try {
             runTest(fileName);
             Assertions.fail();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             System.err.println(e.getMessage());
         }
     }

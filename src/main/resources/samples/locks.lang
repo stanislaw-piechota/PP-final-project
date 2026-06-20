@@ -1,0 +1,9 @@
+sum := 0;
+
+function update(x: int): void {
+    lock sum;
+    sum = sum + 1;
+    unlock sum;
+}
+
+update(10);

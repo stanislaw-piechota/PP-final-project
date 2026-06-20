@@ -126,21 +126,135 @@ join <threadId>;
 ## 3. Intermediate Representation
 
 Intermediate representation is an **AST** rewritten using **JSON** notation.
-Every node has:
+Every node contains:
 - name _(key - object pair)_
 - intrinsic attributes _(key - value pair)_
-- list of children nodes _(key - list pair)_
 
-The schema look like the following
-```json
-{
-  "<nodeName>": {
-    "<attr1>": 1,
-    "<attr2>": true,
-    "children": []
-  }
-}
+Here is the api for specific instructions
+```json5
+[
+  // program (as a whole)
+  {"program":  [
+    { /* statements */ }
+  ]},
+  
+  // declaration
+  {"decl": {
+    "name": "<name>",
+    "type": "<type>",
+    "value": "<expression_obj>",
+    "coordinate": {
+      "level": 0, // <SCT level>
+      "offset": 0 // <SCT level offset>
+    }
+  }},
+  
+  // assignment 
+  {"set":  {
+    "name": "<name>",
+    "value": "<expression_obj>",
+    "coordinate": {
+      "level": 0, // <SCT level>
+      "offset": 0 // <SCT level offset>
+    }
+  }},
+  
+  // reference
+  {"get":  {
+    "name": "<name>",
+    "coordinate": {
+      "level": 0, // <SCT level>
+      "offset": 0 // <SCT level offset>
+    }
+  }},
+  
+  // boolean & arithmetic expressions
+  {"<operation>": [
+    /* expressions */
+  ]},
+  
+  // conditional
+  {
+    "if": {
+      "cond": "<expression>",
+      "children": [ /* statements */ ]
+    },
+    "elifs": [ // may be empty
+      {
+        "cond":  "<expression>",
+        "children": [ /* statements */ ]
+      }
+    ],
+    "else": [ /* statements */ ] // if no else present => null
+  },
+  
+  // while loop
+  {"while":  {
+    "cond": "<expression>",
+    "children": [ /* statements */ ]
+  }},
+  
+  // print
+  {"print":  "<expression>"},
+  
+  // function definitions
+  {"function":  {
+    "name": "<func_name>",
+    "type": "<return_type>",
+    "args": [
+      {
+        "name": "<arg_name>",
+        "type": "<type>",
+        "coordinate": {
+          "level": 0, // <SCT level>
+          "offset": 0 // <SCT level offset>
+        }
+      }
+    ],
+    "children": [/* statements */ ]
+  }},
+  
+  // function call
+  {"call":  {
+    "name": "<func_name>",
+    "type": "<return_type>",
+    "args": [ /* expressions */ ]
+  }},
+  
+  // fork (thread start)
+  {"fork": {
+    "target": "<func_name>",
+    "args": [ /* expressions */ ]
+  }},
+  
+  // join (thread end)
+  {"join":  {
+    "target": "<thread_id>" // of int type
+  }},
+  
+  // lock
+  {"lock":  {
+    "name": "<var_name>",
+    "type": "<type>",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+
+  // unlock
+  {"unlock":  {
+    "name": "<var_name>",
+    "type": "<type>",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }}
+]
 ```
+
+IR has **no whitespaces** at all - single line.
 
 ## 4. Feature roadmap
 
@@ -154,7 +268,7 @@ The schema look like the following
 | While loop                | ✅        | ❌       |
 | Functions (+1.0)          | ✅        | ❌       |
 | Threads                   | ✅        | ❌       |
-| Locks                     | ❌        | ❌       |
+| Locks                     | ✅        | ❌       |
 | Pointers (+1.0)           | ❌        | ❌       |
 | Arrays (+1.0)             | ❌        | ❌       |
 | Strings (+0.5)            | ❌        | ❌       |

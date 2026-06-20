@@ -391,7 +391,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
 
         TypeName returnType = TypeName.fromTypeName(ctx.TYPE().getLast().getText());
         assert returnType != null;
-        builder.append(String.format("{\"func\":{\"name\":\"%s\",\"type\":\"%s\",\"args\":[",
+        builder.append(String.format("{\"function\":{\"name\":\"%s\",\"type\":\"%s\",\"args\":[",
                 funcName, returnType), false);
 
         symbolTable.addLevel();
@@ -557,8 +557,46 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             );
 
         builder.append(String.format(
-                "{\"get\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":\"%s\",\"offset\":\"%s\"}}}},",
+                "{\"get\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}}},",
                 threadId, coordinate.type().typeName(), coordinate.level(), coordinate.offset()));
         return null;
+    }
+
+    @Override
+    public Type visitLock(LanguageParser.LockContext ctx) {
+        visitLock("lock", ctx.ID());
+        return null;
+    }
+
+    @Override
+    public Type visitUnlock(LanguageParser.UnlockContext ctx) {
+        visitLock("unlock", ctx.ID());
+        return null;
+    }
+
+    private void visitLock(String type, TerminalNode id) {
+        String targetName = id.getText();
+        Coordinate coordinate = symbolTable.get(targetName);
+
+        if (coordinate == null) {
+            errorListener.syntaxError(
+                    id.getSymbol(),
+                    String.format("undeclared variable `%s`", targetName)
+            );
+            return;
+        }
+
+        Operation op = Operation.valueOfOpName(type);
+        assert op != null;
+        TypeName resultType = op.getResultType(coordinate.type().typeName());
+        if (resultType == null)
+            errorListener.syntaxError(
+                    id.getSymbol(),
+                    String.format("type mismatch (expected `int`, actual `%s`)", coordinate.type().typeName())
+            );
+
+        builder.append(String.format(
+                "{\"%s\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,offset:\"%s\"}}},",
+                type, targetName, coordinate.type().typeName(), coordinate.level(), coordinate.offset()), false);
     }
 }

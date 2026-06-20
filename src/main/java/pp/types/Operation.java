@@ -28,7 +28,15 @@ public enum Operation {
             new OpType(VOID, BOOL)
     )),
     FORK("fork", List.of(new OpType(INT, FUNC))),
-    JOIN("join", List.of(new OpType(VOID, INT)));
+    JOIN("join", List.of(new OpType(VOID, INT))),
+    LOCK("lock", List.of(
+            new OpType(VOID, INT),
+            new OpType(VOID, BOOL)
+    )),
+    UNLOCK("unlock", List.of(
+            new OpType(VOID, INT),
+            new OpType(VOID, BOOL)
+    ));
 
     private final String opName;
     private final List<OpType> ops;
@@ -40,6 +48,15 @@ public enum Operation {
 
     public String getOpName() {
         return opName;
+    }
+
+    public static Operation valueOfOpName(String opName) {
+        for (Operation operation : Operation.values()) {
+            if (operation.getOpName().equals(opName)) {
+                return operation;
+            }
+        }
+        return null;
     }
 
     public TypeName getResultType(TypeName ...args) {
