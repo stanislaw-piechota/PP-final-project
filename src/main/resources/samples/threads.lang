@@ -1,6 +1,14 @@
-// TODO: add functions
+// function definition
 
-fork thread1 func; // no parameters
-fork thread2 func (1, var1+1);
+function hello(): void {
+    print 1;
+}
+
+function add(x:int, y:int): int {
+    return x+y;
+}
+
+thread1 := fork hello; // no parameters
+thread2 := fork add (1, 2);
 join thread1;
 join thread2;

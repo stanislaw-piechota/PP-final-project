@@ -24,9 +24,10 @@ public enum Operation {
     GT("gt", List.of(new OpType(BOOL, INT, INT))),
     GE("ge", List.of(new OpType(BOOL, INT, INT))),
     PRINT("print", List.of(
-            new OpType(IO, INT),
-            new OpType(IO, BOOL)
-    ));
+            new OpType(VOID, INT),
+            new OpType(VOID, BOOL)
+    )),
+    FORK("fork", List.of(new OpType(INT, FUNC))),;
 
     private final String opName;
     private final List<OpType> ops;

@@ -64,7 +64,7 @@ public class TestGrammar {
         parser.addErrorListener(errorListener);
         ParseTree tree = parser.program();
 
-        Compiler compiler = new Compiler();
+        LanguageCompiler compiler = new LanguageCompiler();
         String result = compiler.compile(tree);
 
         if (SHOW) {

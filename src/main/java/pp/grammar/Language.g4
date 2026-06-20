@@ -7,7 +7,6 @@ statement: ID ':' TYPE ('=' expression)? ';'    # explicitDeclaration
          | conditional                          # cond
          | expression ';'                       # expr
          | whileLoop                            # while
-         | FORK ID ID (LPAR expression (',' expression)* RPAR)? ';' # threadStart
          | JOIN ID ';'                          # threadJoin
          | LOCK ID ';'                          # lock
          | UNLOCK ID ';'                        # unlock
@@ -19,6 +18,7 @@ elseif: ELSEIF expression ((LBRACK block RBRACK) | statement);
 else: ELSE ((LBRACK block RBRACK) | statement);
 whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
 expression: literal                         # exprLit
+          | FORK ID (LPAR expression (',' expression)* RPAR)? # threadStart
           | ID LPAR (expression (',' expression)*)? RPAR # funcCall
           | ID                              # exprId
           | LPAR expression RPAR            # par
@@ -72,7 +72,7 @@ PRINT: 'print';
 IF: 'if';
 ELSEIF: 'elif';
 ELSE: 'else';
-TYPE: 'int' | 'bool';
+TYPE: 'int' | 'bool' | 'void' | 'thread' | 'func';
 
 // literals
 BOOL: 'true' | 'false';

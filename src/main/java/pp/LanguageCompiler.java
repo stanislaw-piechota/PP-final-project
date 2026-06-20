@@ -18,7 +18,7 @@ import java.util.List;
 import static pp.types.Operation.*;
 import static pp.types.TypeName.*;
 
-public class Compiler extends LanguageBaseVisitor<Type> {
+public class LanguageCompiler extends LanguageBaseVisitor<Type> {
     private final ErrorListener errorListener = new ErrorListener();
     private final SymbolTable symbolTable = new SymbolTable();
     private final CustomStringBuilder builder = new CustomStringBuilder();
@@ -176,9 +176,9 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     public Type visitExprId(LanguageParser.ExprIdContext ctx) {
         String varName = ctx.ID().getText();
         Coordinate coordinate = symbolTable.get(varName);
-        Type value = coordinate.type();
+        Type value;
 
-        if (value == null)
+        if (coordinate == null || (value = coordinate.type()) == null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("usage of undeclared variable `%s`", varName)
@@ -255,7 +255,6 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     public Type visitLe(LanguageParser.LeContext ctx) {
         return evaluateExprVisit(LE, ctx.expression(0), ctx.expression(1), ctx.LE());
     }
-
 
     private Type evaluateExprVisit(
             Operation opName,
@@ -365,10 +364,10 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         return null;
     }
 
-    private void visitBlock(LanguageParser.StatementContext stmnt, LanguageParser.BlockContext block) {
+    private void visitBlock(LanguageParser.StatementContext statement, LanguageParser.BlockContext block) {
         symbolTable.addScope();
-        if (stmnt != null) {
-            visit(stmnt);
+        if (statement != null) {
+            visit(statement);
         } else
             visit(block);
         symbolTable.removeScope();
@@ -418,22 +417,22 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     public void visitFunctionBlock(LanguageParser.BlockContext ctx, TypeName expectedType) {
         isFunctionBlock = true;
 
-        for (LanguageParser.StatementContext stmnt : ctx.statement()) {
-            if (stmnt instanceof LanguageParser.ReturnContext) {
-                Type value = visit(stmnt);
+        for (LanguageParser.StatementContext statement : ctx.statement()) {
+            if (statement instanceof LanguageParser.ReturnContext) {
+                Type value = visit(statement);
                 if (value == null || value.empty()) // TODO: add support for void return
                     errorListener.syntaxError(
-                            ((LanguageParser.ReturnContext) stmnt).expression().getStart(),
+                            ((LanguageParser.ReturnContext) statement).expression().getStart(),
                             "empty return not yet supported"
                     );
                 else if (value.typeName() != expectedType)
                     errorListener.syntaxError(
-                            ((LanguageParser.ReturnContext) stmnt).expression().getStart(),
+                            ((LanguageParser.ReturnContext) statement).expression().getStart(),
                             String.format("return type mismatch (declared `%s`, actual `%s)",
                                     expectedType.toString(), value.typeName().toString())
                     );
             } else
-                visit(stmnt);
+                visit(statement);
         }
 
         isFunctionBlock = false;
@@ -482,5 +481,53 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         builder.append("]}},");
 
         return new Type(funcSign.returnType(), true);
+    }
+
+    @Override
+    public Type visitThreadStart(LanguageParser.ThreadStartContext ctx) {
+        String targetName = ctx.ID().getText();
+        Coordinate coordinate = symbolTable.get(targetName);
+
+        if (coordinate == null) {
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("undefined target function `%s`", targetName)
+            );
+            return null;
+        }
+
+        builder.append(String.format("{\"fork\":{\"target\":\"%s\",\"args\":[",
+                targetName), false);
+
+        Type funcSign = coordinate.type();
+        for (int i=0; i<ctx.expression().size(); i++) {
+            builder.append("{\"arg\":", false);
+            Type argType = visit(ctx.expression(i));
+            TypeName expectedTypeName = funcSign.getArgs().get(i);
+
+            if (argType == null)
+                errorListener.syntaxError(
+                        ctx.expression(i).getStart(),
+                        "undefined value used as an argument"
+                );
+            else if (argType.empty() || argType.typeName() != expectedTypeName) {
+                errorListener.syntaxError(
+                        ctx.expression(i).getStart(),
+                        String.format("type mismatch (declared `%s`, actual `%s`)", expectedTypeName, argType.typeName())
+                );
+            } else {
+                builder.append("},");
+            }
+        }
+
+        TypeName resultType = FORK.getResultType(funcSign.typeName());
+        if (resultType == null)
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("invalid argument type (actual `%s`)", funcSign.typeName())
+            );
+
+        builder.append("]}},");
+        return new Type(INT, true);
     }
 }

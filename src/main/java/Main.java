@@ -3,7 +3,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.tree.ParseTree;
-import pp.Compiler;
+import pp.LanguageCompiler;
 import pp.errors.ErrorListener;
 import pp.grammar.LanguageLexer;
 import pp.grammar.LanguageParser;
@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 
 public class Main {
     public final static String PATH = "src/main/resources/samples/";
-    public final static String INPUT_PATH = PATH + "func_call.lang";
+    public final static String INPUT_PATH = PATH + "threads.lang";
     public final static String OUTPUT_PATH = PATH + "output.json";
     public static final Path STACK_PATH = Paths.get("stack");
     public static final boolean COMPILE = false;
@@ -36,12 +36,12 @@ public class Main {
         parser.addErrorListener(errorListener);
         ParseTree tree = parser.program();
 
-        Compiler compiler = new Compiler();
+        LanguageCompiler compiler = new LanguageCompiler();
         System.out.println(tree.toStringTree(parser));
+        errorListener.throwException();
 
         String result = compiler.compile(tree);
         System.out.println(result);
-        errorListener.throwException();
 
         File output = new File(OUTPUT_PATH);
         Files.write(output.toPath(), result.getBytes());

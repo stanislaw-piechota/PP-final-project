@@ -4,8 +4,8 @@ package pp.types;
 public enum TypeName {
     BOOL("bool", 2),
     INT("int", 2),
-    FUNC("function", null),
-    IO("io", null);
+    VOID("void", null),
+    FUNC("function", null);
 
     private final String typeName;
     private final Integer size;

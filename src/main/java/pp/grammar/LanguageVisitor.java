@@ -58,13 +58,6 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitWhile(LanguageParser.WhileContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code threadStart}
-	 * labeled alternative in {@link LanguageParser#statement}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitThreadStart(LanguageParser.ThreadStartContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code threadJoin}
 	 * labeled alternative in {@link LanguageParser#statement}.
 	 * @param ctx the parse tree
@@ -199,6 +192,13 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAnd(LanguageParser.AndContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code threadStart}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitThreadStart(LanguageParser.ThreadStartContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code exprLit}
 	 * labeled alternative in {@link LanguageParser#expression}.
