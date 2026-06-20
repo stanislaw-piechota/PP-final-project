@@ -6,18 +6,23 @@ import pp.errors.ErrorListener;
 import pp.grammar.LanguageBaseVisitor;
 import pp.grammar.LanguageParser;
 import pp.helpers.CustomStringBuilder;
-import pp.types.OpName;
-import pp.types.Operations;
+import pp.tables.Coordinate;
+import pp.tables.SymbolTable;
+import pp.types.Operation;
 import pp.types.Type;
 import pp.types.TypeName;
 
-import static pp.types.OpName.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static pp.types.Operation.*;
+import static pp.types.TypeName.*;
 
 public class Compiler extends LanguageBaseVisitor<Type> {
     private final ErrorListener errorListener = new ErrorListener();
     private final SymbolTable symbolTable = new SymbolTable();
-
     private final CustomStringBuilder builder = new CustomStringBuilder();
+    private boolean isFunctionBlock = false;
 
     public String compile(ParseTree tree) {
         visit(tree);
@@ -49,12 +54,12 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         if (ctx.expression() != null)
             value = visit(ctx.expression());
 
-        if (value == null || !value.valuePresent())
+        if (value == null || value.empty())
             value = new Type(TypeName.fromTypeName(varType), false);
-        else if (!value.type().getTypeName().equals(varType))
+        else if (!value.typeName().toString().equals(varType))
             errorListener.syntaxError(
                     ctx.expression().getStart(),
-                    String.format("type mismatch (expected `%s`, actual `%s`)", varType, value.type().getTypeName())
+                    String.format("type mismatch (expected `%s`, actual `%s`)", varType, value.typeName().toString())
             );
 
         if (symbolTable.getLatest(varName) != null)
@@ -62,10 +67,12 @@ public class Compiler extends LanguageBaseVisitor<Type> {
                     ctx.ID().getSymbol(),
                     String.format("invalid redeclaration of variable `%s`", varName)
             );
-        else
-            symbolTable.put(varName, value);
+        else {
+            Coordinate newCoordinate = symbolTable.put(varName, value);
+            builder.append(String.format("],\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+                    newCoordinate.level(), newCoordinate.offset()));
+        }
 
-        builder.append("]}},");
         return null;
     }
 
@@ -75,7 +82,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         builder.append(String.format("{\"decl\":{\"name\":\"%s\",\"children\":[", varName), false);
 
         Type value = visit(ctx.expression());
-        if (value == null || !value.valuePresent())
+        if (value == null || value.empty())
             errorListener.syntaxError(
                     ctx.expression().getStart(),
                     String.format("attempted type inference of variable `%s` with undefined literal", varName)
@@ -86,8 +93,9 @@ public class Compiler extends LanguageBaseVisitor<Type> {
                     String.format("invalid redeclaration of variable `%s`", varName)
             );
         else {
-            builder.append(String.format("],\"type\":\"%s\"}},", value.type().getTypeName()));
-            symbolTable.put(varName, value);
+            Coordinate newCoordinate = symbolTable.put(varName, value);
+            builder.append(String.format("],\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+                    value.typeName().toString(), newCoordinate.level(), newCoordinate.offset()));
         }
 
         return value;
@@ -125,8 +133,9 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitAssignment(LanguageParser.AssignmentContext ctx) {
         String varName = ctx.ID().getText();
+        Coordinate currentValue = symbolTable.get(varName);
 
-        if (symbolTable.get(varName) == null)
+        if (currentValue == null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("assignment of undeclared variable `%s`", varName)
@@ -134,29 +143,29 @@ public class Compiler extends LanguageBaseVisitor<Type> {
 
         builder.append(String.format("{\"set\":{\"name\":\"%s\",\"children\":[", varName), false);
 
-        Type currentValue = symbolTable.get(varName);
         Type newValue = visit(ctx.expression());
         if (currentValue == null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("attempted reference of undefined variable `%s`", varName)
             );
-        else if (newValue == null || !newValue.valuePresent())
+        else if (newValue == null || newValue.empty())
             errorListener.syntaxError(
                     ctx.expression().getStart(),
                     String.format("attempted assignment of undefined literal to variable `%s`", varName)
             );
-        else if (!newValue.type().equals(currentValue.type()))
+        else if (!newValue.typeName().equals(currentValue.type().typeName()))
             errorListener.syntaxError(
                     ctx.expression().getStart(),
                     String.format("type mismatch (expected `%s`, actual `%s`)",
-                            currentValue.type().getTypeName(),
-                            newValue.type().getTypeName())
+                            currentValue.type().typeName().toString(),
+                            newValue.typeName().toString())
             );
         else {
-            Type newLiteral = new Type(newValue.type(), true);
-            symbolTable.put(varName, newLiteral, false);
-            builder.append("]}},");
+            Type newLiteral = new Type(newValue.typeName(), true);
+            Coordinate coordinate = symbolTable.put(varName, newLiteral, false);
+            builder.append(String.format("],\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+                    coordinate.level(), coordinate.offset()));
             return newLiteral;
         }
 
@@ -166,20 +175,22 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitExprId(LanguageParser.ExprIdContext ctx) {
         String varName = ctx.ID().getText();
-        Type value = symbolTable.get(varName);
+        Coordinate coordinate = symbolTable.get(varName);
+        Type value = coordinate.type();
 
         if (value == null)
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("usage of undeclared variable `%s`", varName)
             );
-        else if (!value.valuePresent())
+        else if (value.empty())
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("usage of uninitialised variable `%s`", varName)
             );
         else {
-            builder.append(String.format("{\"get\":{\"children\":[\"%s\"]}},", varName), false);
+            builder.append(String.format("{\"get\":{\"name\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+                    varName, coordinate.level(), coordinate.offset()), false);
             return value;
         }
 
@@ -247,7 +258,7 @@ public class Compiler extends LanguageBaseVisitor<Type> {
 
 
     private Type evaluateExprVisit(
-            OpName opName,
+            Operation opName,
             LanguageParser.ExpressionContext leftCtx,
             LanguageParser.ExpressionContext rightCtx,
             TerminalNode opCtx
@@ -258,17 +269,17 @@ public class Compiler extends LanguageBaseVisitor<Type> {
         Type right = visit(rightCtx);
         TypeName result;
 
-        if (left == null || !left.valuePresent())
+        if (left == null || left.empty())
             errorListener.syntaxError(
                     leftCtx.getStart(),
                     "attempted operation with undefined value"
             );
-        else if (right == null || !right.valuePresent())
+        else if (right == null || right.empty())
             errorListener.syntaxError(
                     rightCtx.getStart(),
                     "attempted operation with undefined value"
             );
-        else if ((result = Operations.getResultType(opName, left.type(), right.type())) == null)
+        else if ((result = opName.getResultType(left.typeName(), right.typeName())) == null)
             errorListener.syntaxError(
                     opCtx.getSymbol(),
                     "type mismatch in operation"
@@ -284,7 +295,17 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     @Override
     public Type visitPrint(LanguageParser.PrintContext ctx) {
         builder.append("{\"print\":{\"children\":[", false);
-        visit(ctx.expression());
+        Type value = visit(ctx.expression());
+        if (value == null || value.empty())
+            errorListener.syntaxError(
+                    ctx.expression().getStart(),
+                    "empty print not yet supported"
+            );
+        else if (PRINT.getResultType(value.typeName()) == null)
+            errorListener.syntaxError(
+                    ctx.expression().getStart(),
+                    String.format("unable to print expression of type `%s`", value.typeName().toString())
+            );
         builder.append("]}}");
 
         return null;
@@ -345,11 +366,90 @@ public class Compiler extends LanguageBaseVisitor<Type> {
     }
 
     private void visitBlock(LanguageParser.StatementContext stmnt, LanguageParser.BlockContext block) {
-        symbolTable.addLevel();
+        symbolTable.addScope();
         if (stmnt != null) {
             visit(stmnt);
         } else
             visit(block);
+        symbolTable.removeScope();
+    }
+
+    @Override
+    public Type visitFuncDef(LanguageParser.FuncDefContext ctx) {
+        String funcName = ctx.ID(0).getText();
+
+        if (symbolTable.get(funcName) != null) {
+            errorListener.syntaxError(
+                    ctx.ID(0).getSymbol(),
+                    String.format("function/variable with name `%s` already exists", funcName)
+            );
+            return null;
+        }
+
+        TypeName returnType = TypeName.fromTypeName(ctx.TYPE().getLast().getText());
+        assert returnType != null;
+        builder.append(String.format("{\"func\":{\"name\":\"%s\",\"type\":\"%s\",\"args\":[",
+                funcName, returnType), false);
+
+        symbolTable.addLevel();
+        List<TypeName> argTypes = new ArrayList<>();
+        for (int i=1; i<ctx.ID().size(); i++) {
+            String argName = ctx.ID(i).getText();
+            TypeName argType = TypeName.fromTypeName(ctx.TYPE(i-1).getText());
+            argTypes.add(argType);
+            Coordinate newCoordinate = symbolTable.put(argName, new Type(argType, true)); // TODO: add support for passing function as argument
+
+            assert argType != null;
+            builder.append(String.format("{\"arg\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+                    argName, argType, newCoordinate.level(), newCoordinate.offset()), false);
+        }
+
+        builder.append("],\"children\":[");
+        visitFunctionBlock(ctx.block(), returnType);
+        builder.append("]}},");
         symbolTable.removeLevel();
+
+        Type funcSign = new Type(FUNC, returnType, argTypes, true);
+        symbolTable.put(funcName, funcSign);
+
+        return null;
+    }
+
+    public void visitFunctionBlock(LanguageParser.BlockContext ctx, TypeName expectedType) {
+        isFunctionBlock = true;
+
+        for (LanguageParser.StatementContext stmnt : ctx.statement()) {
+            if (stmnt instanceof LanguageParser.ReturnContext) {
+                Type value = visit(stmnt);
+                if (value == null || value.empty()) // TODO: add support for void return
+                    errorListener.syntaxError(
+                            ((LanguageParser.ReturnContext) stmnt).expression().getStart(),
+                            "empty return not yet supported"
+                    );
+                else if (value.typeName() != expectedType)
+                    errorListener.syntaxError(
+                            ((LanguageParser.ReturnContext) stmnt).expression().getStart(),
+                            String.format("return type mismatch (declared `%s`, actual `%s)",
+                                    expectedType.toString(), value.typeName().toString())
+                    );
+            } else
+                visit(stmnt);
+        }
+
+        isFunctionBlock = false;
+    }
+
+    @Override
+    public Type visitReturn(LanguageParser.ReturnContext ctx) {
+        if (!isFunctionBlock)
+            errorListener.syntaxError(
+                    ctx.RETURN().getSymbol(),
+                    "return outside of function context"
+            );
+
+        builder.append("{\"return\":{\"children\":[", false);
+        Type value = visit(ctx.expression());
+        builder.append("]}},");
+        return value;
     }
 }

@@ -72,6 +72,34 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitThreadJoin(LanguageParser.ThreadJoinContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code lock}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLock(LanguageParser.LockContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code unlock}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitUnlock(LanguageParser.UnlockContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code funcDef}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncDef(LanguageParser.FuncDefContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code return}
+	 * labeled alternative in {@link LanguageParser#statement}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitReturn(LanguageParser.ReturnContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link LanguageParser#conditional}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -192,6 +220,13 @@ public interface LanguageVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitLe(LanguageParser.LeContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code funcCall}
+	 * labeled alternative in {@link LanguageParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitFuncCall(LanguageParser.FuncCallContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code multiplication}
 	 * labeled alternative in {@link LanguageParser#expression}.

@@ -151,7 +151,7 @@ The schema look like the following
 | Boolean op.               | ✅        | ❌       |
 | Print                     | ✅        | ❌       |
 | Conditionals              | ✅        | ❌       |
-| While loop                | ❌        | ❌       |
+| While loop                | ✅        | ❌       |
 | Functions (+1.0)          | ❌        | ❌       |
 | Threads                   | ❌        | ❌       |
 | Locks                     | ❌        | ❌       |

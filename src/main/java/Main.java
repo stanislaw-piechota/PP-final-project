@@ -5,7 +5,6 @@ import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.tree.ParseTree;
 import pp.Compiler;
 import pp.errors.ErrorListener;
-import pp.grammar.LanguageBaseListener;
 import pp.grammar.LanguageLexer;
 import pp.grammar.LanguageParser;
 
@@ -18,9 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public class Main extends LanguageBaseListener {
+public class Main {
     public final static String PATH = "src/main/resources/samples/";
-    public final static String INPUT_PATH = PATH + "while.lang";
+    public final static String INPUT_PATH = PATH + "func_basics.lang";
     public final static String OUTPUT_PATH = PATH + "output.json";
     public static final Path STACK_PATH = Paths.get("stack");
     public static final boolean COMPILE = false;

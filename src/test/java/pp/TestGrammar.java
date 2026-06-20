@@ -26,7 +26,7 @@ public class TestGrammar {
         success("conditionals");
         success("while");
 //        success("threads");
-//        fail("expressions_mismatch");
+        fail("expressions_mismatch");
     }
 
     private void success(String fileName) {

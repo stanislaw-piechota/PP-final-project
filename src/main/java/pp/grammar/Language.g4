@@ -8,15 +8,18 @@ statement: ID ':' TYPE ('=' expression)? ';'    # explicitDeclaration
          | expression ';'                       # expr
          | whileLoop                            # while
          | FORK ID ID (LPAR expression (',' expression)* RPAR)? ';' # threadStart
-         | JOIN ID ';'                          # threadJoin;
+         | JOIN ID ';'                          # threadJoin
+         | LOCK ID ';'                          # lock
+         | UNLOCK ID ';'                        # unlock
+         | FUNC ID LPAR (ID ':' TYPE (',' ID ':' TYPE)*)? RPAR ':' TYPE LBRACK block RBRACK # funcDef
+         | RETURN expression ';'                # return;
 conditional: if elseif* else?;
 if: IF expression ((LBRACK block RBRACK) | statement);
 elseif: ELSEIF expression ((LBRACK block RBRACK) | statement);
 else: ELSE ((LBRACK block RBRACK) | statement);
 whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
 expression: literal                         # exprLit
-          | ID ':=' expression              # implicitDeclaration
-          | ID '=' expression               # assignment
+          | ID LPAR (expression (',' expression)*)? # funcCall
           | ID                              # exprId
           | LPAR expression RPAR            # par
           | expression TIMES expression     # multiplication
@@ -26,6 +29,8 @@ expression: literal                         # exprLit
           | expression GT expression        # gt
           | expression LE expression        # le
           | expression GE expression        # ge
+          | ID ':=' expression              # implicitDeclaration
+          | ID '=' expression               # assignment
           | expression EQUAL expression     # equal
           | expression NOT_EQUAL expression # notEqual
           | expression AND expression       # and
@@ -56,6 +61,10 @@ LBRACK: '{';
 RBRACK: '}';
 
 // keywords
+FUNC: 'function';
+RETURN: 'return';
+LOCK: 'lock';
+UNLOCK: 'unlock';
 FORK: 'fork';
 JOIN: 'join';
 WHILE: 'while';

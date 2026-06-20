@@ -1,0 +1,11 @@
+// declaration in global scope
+x := true;
+
+// declaration in function scope (as param)
+function myFunc(x: int, y: int): int {
+    x = x + 1;
+    return x;
+}
+
+// post function assignment
+x = false;
