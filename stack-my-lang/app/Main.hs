@@ -17,6 +17,7 @@ serializeProgram = unlines . map show
 
 main :: IO ()
 main = do
+    print "Enter your program:"
     txt <- getLine
     let program = compile txt
     writeFile outputPath (serializeProgram program)

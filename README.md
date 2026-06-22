@@ -260,10 +260,10 @@ IR has **no whitespaces** at all - single line.
 
 | Feature Name              | Frontend | Backend |
 |---------------------------|----------|---------|
-| Variables                 | ✅        | ❌       |
-| Arithmetics op.           | ✅        | ❌       |
-| Boolean op.               | ✅        | ❌       |
-| Print                     | ✅        | ❌       |
+| Variables                 | ✅        | ✅       |
+| Arithmetics op.           | ✅        | ✅       |
+| Boolean op.               | ✅        | ✅       |
+| Print                     | ✅        | ✅       |
 | Conditionals              | ✅        | ❌       |
 | While loop                | ✅        | ❌       |
 | Functions (+1.0)          | ✅        | ❌       |

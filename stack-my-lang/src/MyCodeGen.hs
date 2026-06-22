@@ -54,21 +54,46 @@ constructProgram (Decl {declName, declType, declValue, declCoordinate}) symbolTa
         Just val ->
             let (instructions, newerSymbolTable, newFreeAddress) = constructProgram val newSymbolTable nextFreeAddress
             in (instructions ++ [
+                Pop regA,
                 Store regA (DirAddr declAddress)
             ], newerSymbolTable, newFreeAddress)
         Nothing -> ([], newSymbolTable, nextFreeAddress)
 constructProgram (Set {setName, setValue, setCoordinate}) symbolTable freeAddress =
     let (instructions, newSymbolTable, newFreeAddress) = constructProgram setValue symbolTable freeAddress
     in (instructions ++ [
+        Pop regA,
         Store regA (DirAddr $ fromJust $ Map.lookup (symbolKey setName setCoordinate) newSymbolTable)
     ], newSymbolTable, newFreeAddress)
 constructProgram (Get {getName, getCoordinate, getType}) symbolTable freeAddress =
     ([
-        Load (DirAddr $ fromJust $ Map.lookup (symbolKey getName getCoordinate) symbolTable) regA
+        Load (DirAddr $ fromJust $ Map.lookup (symbolKey getName getCoordinate) symbolTable) regA,
+        Push regA
     ], symbolTable, freeAddress)
 constructProgram (IntLit n) symbolTable freeAddress = ([
-        Load (ImmValue $ fromInteger n) regA
+        Load (ImmValue $ fromInteger n) regA,
+        Push regA
     ], symbolTable, freeAddress)
+constructProgram (BoolLit b) symbolTable freeAddress = ([
+        Load (ImmValue $ if b then 1 else 0) regA,
+        Push regA
+    ], symbolTable, freeAddress)
+constructProgram (BinaryOp {opName, leftOperand, rightOperand}) symbolTable freeAddress =
+    let (leftInstr, leftSymTable, leftFreeAddr) = constructProgram leftOperand symbolTable freeAddress
+        (rightInstr, rightSymTable, rightFreeAddr) = constructProgram rightOperand leftSymTable leftFreeAddr
+        opInstr = case opName of
+            "add" -> Compute Add regA regB regA
+            "sub" -> Compute Sub regA regB regA
+            "mul" -> Compute Mul regA regB regA
+            "eq" -> Compute Equal regA regB regA
+            "neq" -> Compute NEq regA regB regA
+            "gt" -> Compute Gt regA regB regA
+            "lt" -> Compute Lt regA regB regA
+            "gte" -> Compute GtE regA regB regA
+            "lte" -> Compute LtE regA regB regA
+            "and" -> Compute And regA regB regA
+            "or" -> Compute Or regA regB regA
+            _ -> error "Unknown operator"
+    in (leftInstr ++ rightInstr ++ [Pop regB, Pop regA, opInstr, Push regA], rightSymTable, rightFreeAddr)
 constructProgram (Print printValue) symbolTable freeAddress =
     let (instructions, newSymbolTable, newFreeAddress) = constructProgram printValue symbolTable freeAddress
     in (instructions ++ [

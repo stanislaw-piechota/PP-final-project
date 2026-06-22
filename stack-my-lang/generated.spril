@@ -1,12 +1,114 @@
-Load (ImmValue (-1)) 2
-Store 2 (DirAddr 0)
 Load (ImmValue 1) 2
-Store 2 (DirAddr 2)
+Push 2
 Load (ImmValue 2) 2
-Store 2 (DirAddr 4)
-Store 2 (DirAddr 6)
-Load (DirAddr 6) 2
+Push 2
+Pop 3
+Pop 2
+Compute Add 2 3 2
+Push 2
+Load (ImmValue 2) 2
+Push 2
+Load (ImmValue 3) 2
+Push 2
+Pop 3
+Pop 2
+Compute Sub 2 3 2
+Push 2
+Load (ImmValue 2) 2
+Push 2
+Load (ImmValue 3) 2
+Push 2
+Pop 3
+Pop 2
+Compute Mul 2 3 2
+Push 2
+Load (ImmValue 2) 2
+Push 2
+Load (ImmValue 3) 2
+Push 2
+Load (ImmValue 4) 2
+Push 2
+Pop 3
+Pop 2
+Compute Mul 2 3 2
+Push 2
+Pop 3
+Pop 2
+Compute Add 2 3 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Load (ImmValue 0) 2
+Push 2
+Pop 3
+Pop 2
+Compute And 2 3 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Pop 2
+Store 2 (DirAddr 0)
+Pop 3
+Pop 2
+Compute Or 2 3 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Pop 2
 Store 2 (DirAddr 2)
+Pop 3
+Pop 2
+Compute Gt 2 3 2
+Push 2
+Pop 3
+Pop 2
+Compute And 2 3 2
+Push 2
+Load (DirAddr 0) 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Pop 3
+Pop 2
+Compute Equal 2 3 2
+Push 2
 Load (DirAddr 2) 2
+Push 2
+Load (ImmValue 2) 2
+Push 2
+Pop 3
+Pop 2
+Compute NEq 2 3 2
+Push 2
+Load (ImmValue 2) 2
+Push 2
+Load (ImmValue 4) 2
+Push 2
+Pop 3
+Pop 2
+Compute Mul 2 3 2
+Push 2
+Load (DirAddr 2) 2
+Push 2
+Load (ImmValue 1) 2
+Push 2
+Pop 3
+Pop 2
+Compute Add 2 3 2
+Push 2
+Pop 2
+Store 2 (DirAddr 2)
+Pop 3
+Pop 2
+Compute Gt 2 3 2
+Push 2
+Pop 2
+Store 2 (DirAddr 4)
+Load (DirAddr 4) 2
+Push 2
 WriteInstr 2 (DirAddr 65536)
 EndProg
