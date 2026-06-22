@@ -30,43 +30,52 @@ import Data.Maybe (fromJust)
 --        , EndProg
 --        ]
 
-sizeOfType :: String -> Int
+type Address = Int
+type SymbolTable = Map Integer Address
+type VariableType = String
+
+sizeOfType :: VariableType -> Address
 sizeOfType "int" = 2
+sizeOfType "bool" = 1
 
-addressOfCoordinate :: Coordinate -> Int
-addressOfCoordinate Coordinate {offset} = fromInteger offset
+addressOfCoordinate :: Coordinate -> SymbolTable -> Address
+addressOfCoordinate Coordinate {level, offset} symbolTable = (symbolTable Map.! level) + fromInteger offset
 
-symbolKey :: String -> Coordinate -> String
-symbolKey name coordinate = name ++ show coordinate
+getOrCreateAddress :: Coordinate -> VariableType -> SymbolTable -> Address -> (Address, SymbolTable, Address)
+getOrCreateAddress Coordinate {level, offset} varType symbolTable freeAddress =
+    case Map.lookup level symbolTable of
+        Just addr -> (addr + fromInteger offset, symbolTable, freeAddress)
+        Nothing -> let newAddress = freeAddress
+                       newSymbolTable = insert level newAddress symbolTable
+                   in (newAddress + fromInteger offset, newSymbolTable, newAddress + sizeOfType varType)
 
-constructProgram :: AST -> Map String Int -> Int -> ([Instruction], Map String Int, Int)
+constructProgram :: AST -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
 constructProgram (Program children) symbolTable freeAddress =
         foldl (\(prevInstr, prevSymTable, prevFreeAddr) cur ->
                     let (curInstr, curSymTable, curFreeAddr) = constructProgram cur prevSymTable prevFreeAddr
                     in (prevInstr ++ curInstr, curSymTable, curFreeAddr)
                 ) ([], symbolTable, freeAddress) children
 constructProgram (Decl {declName, declType, declValue, declCoordinate}) symbolTable freeAddress =
-    let declAddress = addressOfCoordinate declCoordinate
-        nextFreeAddress = max freeAddress (declAddress + sizeOfType declType)
-        newSymbolTable = insert (symbolKey declName declCoordinate) declAddress symbolTable
+    let (declAddress, newSymbolTable, nextFreeAddress) = getOrCreateAddress declCoordinate declType symbolTable freeAddress
     in
     case declValue of
         Just val ->
             let (instructions, newerSymbolTable, newFreeAddress) = constructProgram val newSymbolTable nextFreeAddress
             in (instructions ++ [
                 Pop regA,
-                Store regA (DirAddr declAddress)
+                Store regA (DirAddr declAddress),
+                Push regA
             ], newerSymbolTable, newFreeAddress)
         Nothing -> ([], newSymbolTable, nextFreeAddress)
 constructProgram (Set {setName, setValue, setCoordinate}) symbolTable freeAddress =
     let (instructions, newSymbolTable, newFreeAddress) = constructProgram setValue symbolTable freeAddress
     in (instructions ++ [
         Pop regA,
-        Store regA (DirAddr $ fromJust $ Map.lookup (symbolKey setName setCoordinate) newSymbolTable)
+        Store regA (DirAddr $ addressOfCoordinate setCoordinate newSymbolTable)
     ], newSymbolTable, newFreeAddress)
 constructProgram (Get {getName, getCoordinate, getType}) symbolTable freeAddress =
     ([
-        Load (DirAddr $ fromJust $ Map.lookup (symbolKey getName getCoordinate) symbolTable) regA,
+        Load (DirAddr $ addressOfCoordinate getCoordinate symbolTable) regA,
         Push regA
     ], symbolTable, freeAddress)
 constructProgram (IntLit n) symbolTable freeAddress = ([
