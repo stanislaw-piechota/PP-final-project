@@ -1,0 +1,12 @@
+Load (ImmValue (-1)) 2
+Store 2 (DirAddr 0)
+Load (ImmValue 1) 2
+Store 2 (DirAddr 2)
+Load (ImmValue 2) 2
+Store 2 (DirAddr 4)
+Store 2 (DirAddr 6)
+Load (DirAddr 6) 2
+Store 2 (DirAddr 2)
+Load (DirAddr 2) 2
+WriteInstr 2 (DirAddr 65536)
+EndProg

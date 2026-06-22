@@ -1,8 +1,13 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module MyCodeGen
     ( codeGen ) where
 
 import Sprockell
-import ParseJSON (AST(..))
+import ParseJSON (AST(..), Coordinate(..))
+import Data.HashMap (Map, insert)
+import qualified Data.HashMap as Map
+import Data.Maybe (fromJust)
 
 -- codeGen :: Integer -> [Instruction]
 -- codeGen n = [ 
@@ -25,19 +30,57 @@ import ParseJSON (AST(..))
 --        , EndProg
 --        ]
 
-codeGen :: AST -> [Instruction]
-codeGen (IntLit n) = [
-        Load (ImmValue $ fromInteger n) regA
-    ]
-codeGen (Program children) = foldl (\prev cur -> prev ++ (codeGen cur)) [] children ++ [EndProg]
-codeGen (Addition left right) = l ++ r ++ [
-      Compute Add regA regB regA
-    , WriteInstr regA numberIO
-    ]
-    where l = codeGen' left regA
-          r = codeGen' right regB
+sizeOfType :: String -> Int
+sizeOfType "int" = 2
 
-codeGen' :: AST -> Int -> [Instruction]
-codeGen' (IntLit n) r = [
-    Load (ImmValue $ fromInteger n) r
-    ]
+addressOfCoordinate :: Coordinate -> Int
+addressOfCoordinate Coordinate {offset} = fromInteger offset
+
+symbolKey :: String -> Coordinate -> String
+symbolKey name coordinate = name ++ show coordinate
+
+constructProgram :: AST -> Map String Int -> Int -> ([Instruction], Map String Int, Int)
+constructProgram (Program children) symbolTable freeAddress =
+        foldl (\(prevInstr, prevSymTable, prevFreeAddr) cur ->
+                    let (curInstr, curSymTable, curFreeAddr) = constructProgram cur prevSymTable prevFreeAddr
+                    in (prevInstr ++ curInstr, curSymTable, curFreeAddr)
+                ) ([], symbolTable, freeAddress) children
+constructProgram (Decl {declName, declType, declValue, declCoordinate}) symbolTable freeAddress =
+    let declAddress = addressOfCoordinate declCoordinate
+        nextFreeAddress = max freeAddress (declAddress + sizeOfType declType)
+        newSymbolTable = insert (symbolKey declName declCoordinate) declAddress symbolTable
+    in
+    case declValue of
+        Just val ->
+            let (instructions, newerSymbolTable, newFreeAddress) = constructProgram val newSymbolTable nextFreeAddress
+            in (instructions ++ [
+                Store regA (DirAddr declAddress)
+            ], newerSymbolTable, newFreeAddress)
+        Nothing -> ([], newSymbolTable, nextFreeAddress)
+constructProgram (Set {setName, setValue, setCoordinate}) symbolTable freeAddress =
+    let (instructions, newSymbolTable, newFreeAddress) = constructProgram setValue symbolTable freeAddress
+    in (instructions ++ [
+        Store regA (DirAddr $ fromJust $ Map.lookup (symbolKey setName setCoordinate) newSymbolTable)
+    ], newSymbolTable, newFreeAddress)
+constructProgram (Get {getName, getCoordinate, getType}) symbolTable freeAddress =
+    ([
+        Load (DirAddr $ fromJust $ Map.lookup (symbolKey getName getCoordinate) symbolTable) regA
+    ], symbolTable, freeAddress)
+constructProgram (IntLit n) symbolTable freeAddress = ([
+        Load (ImmValue $ fromInteger n) regA
+    ], symbolTable, freeAddress)
+constructProgram (Print printValue) symbolTable freeAddress =
+    let (instructions, newSymbolTable, newFreeAddress) = constructProgram printValue symbolTable freeAddress
+    in (instructions ++ [
+        WriteInstr regA numberIO
+    ], newSymbolTable, newFreeAddress)
+
+codeGen :: AST -> [Instruction]
+codeGen ast = instructions ++ [EndProg]
+    where
+        (instructions, _, _) = constructProgram ast Map.empty 0
+
+-- codeGen' :: AST -> Int -> [Instruction]
+-- codeGen' (IntLit n) r = [
+--     Load (ImmValue $ fromInteger n) r
+--     ]

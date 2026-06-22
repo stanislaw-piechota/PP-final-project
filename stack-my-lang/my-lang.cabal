@@ -26,10 +26,16 @@ library
       src
   build-depends:
       QuickCheck >=2.15 && <2.19
+    , aeson ==2.2.*
     , base >=4.18 && <5
+    , bytestring ==0.12.*
+    , hashmap
     , hspec ==2.11.*
     , parsec ==3.1.*
+    , scientific ==0.3.*
     , sprockell >=2022.0
+    , text >=2.0 && <2.2
+    , vector ==0.13.*
   default-language: Haskell2010
 
 executable my-lang-exe
@@ -41,11 +47,17 @@ executable my-lang-exe
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck >=2.15 && <2.19
+    , aeson ==2.2.*
     , base >=4.18 && <5
+    , bytestring ==0.12.*
+    , hashmap
     , hspec ==2.11.*
     , my-lang
     , parsec ==3.1.*
+    , scientific ==0.3.*
     , sprockell >=2022.0
+    , text >=2.0 && <2.2
+    , vector ==0.13.*
   default-language: Haskell2010
 
 test-suite my-lang-test
@@ -58,9 +70,15 @@ test-suite my-lang-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       QuickCheck >=2.15 && <2.19
+    , aeson ==2.2.*
     , base >=4.18 && <5
+    , bytestring ==0.12.*
+    , hashmap
     , hspec ==2.11.*
     , my-lang
     , parsec ==3.1.*
+    , scientific ==0.3.*
     , sprockell >=2022.0
+    , text >=2.0 && <2.2
+    , vector ==0.13.*
   default-language: Haskell2010

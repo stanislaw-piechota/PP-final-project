@@ -1,13 +1,3 @@
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.tree.ParseTree;
-import pp.LanguageCompiler;
-import pp.errors.ErrorListener;
-import pp.grammar.LanguageLexer;
-import pp.grammar.LanguageParser;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,9 +7,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Lexer;
+import org.antlr.v4.runtime.tree.ParseTree;
+
+import pp.LanguageCompiler;
+import pp.errors.ErrorListener;
+import pp.grammar.LanguageLexer;
+import pp.grammar.LanguageParser;
+
 public class Main {
     public final static String PATH = "src/main/resources/samples/";
-    public final static String INPUT_PATH = PATH + "locks.lang";
+    public final static String INPUT_PATH = PATH + "assignments.lang";
     public final static String OUTPUT_PATH = PATH + "output.json";
     public static final Path STACK_PATH = Paths.get("stack");
     public static final boolean COMPILE = false;
@@ -47,7 +48,7 @@ public class Main {
         Files.write(output.toPath(), result.getBytes());
 
         if (COMPILE) {
-            String[] command = new String[]{
+            String[] command = new String[] {
                     STACK_PATH.toString(),
                     "run",
             };
