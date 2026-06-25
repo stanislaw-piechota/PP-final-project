@@ -74,6 +74,7 @@ data AST
     | Function
         { functionName :: String
         , functionType :: String
+        , functionCoordinate :: Coordinate
         , functionArgs :: [FunctionArg]
         , functionChildren :: [AST]
         }
@@ -85,6 +86,7 @@ data AST
         }
     | Fork
         { forkTarget :: String
+        -- , forkThread :: Integer
         , forkArgs :: [AST]
         }
     | Join String
@@ -215,11 +217,13 @@ parseFunction :: Fields -> Either String AST
 parseFunction fields = do
     name <- requireString "name" fields
     typ <- requireString "type" fields
+    coordinate <- requireCoordinate "coordinate" fields
     args <- requireFieldAs "args" parseFunctionArgs fields
     children <- requireStatements "children" fields
     pure Function
         { functionName = name
         , functionType = typ
+        , functionCoordinate = coordinate
         , functionArgs = args
         , functionChildren = children
         }
@@ -238,9 +242,11 @@ parseCall fields = do
 parseFork :: Fields -> Either String AST
 parseFork fields = do
     target <- requireString "target" fields
+    -- thread <- require 
     args <- requireFieldAs "args" parseForkArgs fields
     pure Fork
         { forkTarget = target
+        -- , forkThread = thread
         , forkArgs = args
         }
 

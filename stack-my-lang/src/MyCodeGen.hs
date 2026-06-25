@@ -4,10 +4,11 @@ module MyCodeGen
     ( codeGen ) where
 
 import Sprockell
-import ParseJSON (AST(..), Coordinate(..))
+import ParseJSON (AST(..), Coordinate(..), FunctionArg(..))
 import Data.HashMap (Map, insert)
 import qualified Data.HashMap as Map
 import Data.Maybe (fromJust)
+import Debug.Trace (trace)
 
 -- codeGen :: Integer -> [Instruction]
 -- codeGen n = [ 
@@ -109,6 +110,103 @@ constructProgram (Print printValue) symbolTable freeAddress =
         WriteInstr regA numberIO
     ], newSymbolTable, newFreeAddress)
 
+-- ends with return value in regA, which needs to be pushed onto the stack by the caller
+-- `functionCoordinate` is not properly defined right now
+constructProgram (Function {functionName, functionType, functionCoordinate, functionArgs, functionChildren}) symbolTable freeAddress = 
+        -- Set symbol table values (first instruction location and total size of arguments)
+    let (declAddress1, newSymbolTable1, nextFreeAddress1) = getOrCreateAddress functionCoordinate "int" symbolTable freeAddress
+        functionCoordinate' = functionCoordinate { offset = offset functionCoordinate + 2 }
+        (declAddress2, newSymbolTable2, nextFreeAddress2) = getOrCreateAddress functionCoordinate' "int" newSymbolTable1 nextFreeAddress1
+        definitionInstr = [
+              Load (ImmValue 1) regA -- Load position of first instruction, from label or something
+            , Store regA (DirAddr declAddress1)
+            , Load (ImmValue (getFuncArgSize functionArgs)) regA
+            , Store regA (DirAddr declAddress2)
+            ]
+
+        -- save args from to stack to local memory
+        (argSaveInstr, newSymbolTable3, nextFreeAddress3) = saveArgsToMem functionArgs newSymbolTable2 nextFreeAddress2
+        (childrenInstr, newSymbolTable4, nextFreeAddress4) = collectInstrs functionChildren newSymbolTable3 nextFreeAddress3
+        bodyInstr = argSaveInstr ++ childrenInstr
+
+        -- add a Jump instruction to the end of the function (instead of executing it at the time of definition)
+        definitionInstr' = definitionInstr ++ [Jump $ Rel $ (length bodyInstr) + 1]
+    in (definitionInstr' ++ bodyInstr, newSymbolTable4, nextFreeAddress4)
+
+constructProgram (Return ast) symbolTable freeAddress = 
+    let (evalInstr, newSymbolTable, nextFreeAddress) = constructProgram ast symbolTable freeAddress
+        -- save return value to regA, restore stack pointer from regF, pop return address and jump
+        instr = evalInstr ++ [
+              Pop regA
+            , Push regF
+            , Pop regSP
+            , Pop regB
+            , Jump (Ind regB)
+            ]
+        in (instr, newSymbolTable, nextFreeAddress)
+
+getFuncArgSize :: [FunctionArg] -> Int
+getFuncArgSize [] = 0
+getFuncArgSize (FunctionArg {argName, argType, argCoordinate}:args) = (sizeOfType argType) + getFuncArgSize args
+
+-- Left-recursive because right-most arg is on top of the stack
+saveArgsToMem :: [FunctionArg] -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
+saveArgsToMem [] st fa = ([], st, fa)
+saveArgsToMem (FunctionArg {argName, argType, argCoordinate}:args) symbolTable freeAddress =
+    (restInstr ++ [Pop regA, Store regA (DirAddr declAddress)], finalSt, finalFa)
+    where
+        (declAddress, newSymbolTable, nextFreeAddress) = getOrCreateAddress argCoordinate argType symbolTable freeAddress
+        (restInstr, finalSt, finalFa) = saveArgsToMem args newSymbolTable nextFreeAddress
+
+collectInstrs :: [AST] -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
+collectInstrs [] st fa = ([], st, fa)
+collectInstrs (ast:asts) symbolTable freeAddress =
+    (insts ++ restInsts, finalSymbolTable, finalFreeAddress)
+    where
+        (insts, newSymbolTable, nextFreeAddress) = constructProgram ast symbolTable freeAddress
+        (restInsts, finalSymbolTable, finalFreeAddress) = collectInstrs asts newSymbolTable nextFreeAddress
+
+pushAllRegisters :: [Instruction]
+pushAllRegisters = [
+      Push regA
+    , Push regB
+    , Push regC
+    , Push regD
+    , Push regE
+    , Push regF
+    ]
+
+popAllRegisters :: [Instruction]
+popAllRegisters = [
+      Pop regF
+    , Pop regE
+    , Pop regD
+    , Pop regC
+    , Pop regB
+    , Pop regA
+    ]
+
+pushArgsToStack :: [AST] -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
+pushArgsToStack asts initialSymbolTable initialFreeAddress =
+    let (instructionLists, finalSymbolTable, finalFreeAddress) = 
+            foldl (\(insts, st, addr) ast -> 
+                let (newInsts, newSt, newAddr) = constructProgram ast st addr
+                in (insts ++ newInsts, newSt, newAddr)
+            ) ([], initialSymbolTable, initialFreeAddress) asts
+    in (wrapInstructions instructionLists, finalSymbolTable, finalFreeAddress)
+  where
+    wrapInstructions insts = 
+        [ Push regSP
+        , Pop regF
+        ]
+        ++ insts ++
+        [ Pop regA
+        , Push regF
+        , Pop regSP
+        , Push regA
+        ]
+
+
 codeGen :: AST -> [Instruction]
 codeGen ast = instructions ++ [EndProg]
     where
@@ -118,3 +216,14 @@ codeGen ast = instructions ++ [EndProg]
 -- codeGen' (IntLit n) r = [
 --     Load (ImmValue $ fromInteger n) r
 --     ]
+
+-- addr = 64 (thread state offset) + regSprID
+-- set Int at addr to 0 (sleep state)
+-- wait
+auxThread :: [Instruction]
+auxThread = [
+      Load (ImmValue 64) regA
+    , Compute Add regA regSprID regA
+    , Load (ImmValue 0) regB
+    , WriteInstr regB (IndAddr regA)
+    ]
