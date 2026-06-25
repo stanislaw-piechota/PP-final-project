@@ -24,4 +24,42 @@ Push 7
 Pop 8
 Pop 3
 Jump (Ind 3)
+Push 3
+Push 4
+Push 5
+Push 6
+Push 7
+Load (ImmValue 99) 2
+Push 2
+Push 8
+Pop 7
+Load (ImmValue 1) 2
+Push 2
+Pop 2
+Push 7
+Pop 8
+Push 2
+Push 8
+Pop 7
+Load (ImmValue 5) 2
+Push 2
+Pop 2
+Push 7
+Pop 8
+Push 2
+Push 8
+Pop 7
+Load (DirAddr 2) 2
+Compute Sub 7 2 7
+Load (DirAddr 0) 2
+Jump (Ind 2)
+Pop 7
+Pop 6
+Pop 5
+Pop 4
+Pop 3
+Push 2
+Pop 2
+Store 2 (DirAddr 2)
+Push 2
 EndProg

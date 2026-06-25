@@ -110,6 +110,7 @@ constructProgram (Print printValue) symbolTable freeAddress =
         WriteInstr regA numberIO
     ], newSymbolTable, newFreeAddress)
 
+-- Function definitions:
 -- ends with return value in regA, which needs to be pushed onto the stack by the caller
 -- `functionCoordinate` is not properly defined right now
 constructProgram (Function {functionName, functionType, functionCoordinate, functionArgs, functionChildren}) symbolTable freeAddress = 
@@ -133,6 +134,7 @@ constructProgram (Function {functionName, functionType, functionCoordinate, func
         definitionInstr' = definitionInstr ++ [Jump $ Rel $ (length bodyInstr) + 1]
     in (definitionInstr' ++ bodyInstr, newSymbolTable4, nextFreeAddress4)
 
+-- Return statements:
 constructProgram (Return ast) symbolTable freeAddress = 
     let (evalInstr, newSymbolTable, nextFreeAddress) = constructProgram ast symbolTable freeAddress
         -- save return value to regA, restore stack pointer from regF, pop return address and jump
@@ -144,6 +146,26 @@ constructProgram (Return ast) symbolTable freeAddress =
             , Jump (Ind regB)
             ]
         in (instr, newSymbolTable, nextFreeAddress)
+
+-- Function calls:
+constructProgram (Call {callName, callType, callCoordinate, callArgs}) symbolTable freeAddress =
+    let (argStackInstr, newSymbolTable, nextFreeAddress) = pushArgsToStack callArgs symbolTable freeAddress
+        argSizeCoordinate = callCoordinate { offset = offset callCoordinate + 2 }
+        instr = pushAllRegisters ++ [
+              Load (ImmValue 99) regA -- replace with label for return address
+            , Push regA
+            ] ++ argStackInstr ++ [
+              Push regSP
+            , Pop regF
+            , Load (DirAddr $ addressOfCoordinate argSizeCoordinate newSymbolTable) regA
+            , Compute Sub regF regA regF
+            , Load (DirAddr $ addressOfCoordinate callCoordinate newSymbolTable) regA
+            , Jump (Ind regA)
+            -- LABEL FOR RETURN ADDRESS
+            ] ++ popAllRegisters ++ [
+                Push regA
+            ]
+    in (instr, newSymbolTable, nextFreeAddress)
 
 getFuncArgSize :: [FunctionArg] -> Int
 getFuncArgSize [] = 0
@@ -166,16 +188,17 @@ collectInstrs (ast:asts) symbolTable freeAddress =
         (insts, newSymbolTable, nextFreeAddress) = constructProgram ast symbolTable freeAddress
         (restInsts, finalSymbolTable, finalFreeAddress) = collectInstrs asts newSymbolTable nextFreeAddress
 
+-- Ignores regA
 pushAllRegisters :: [Instruction]
 pushAllRegisters = [
-      Push regA
-    , Push regB
+      Push regB
     , Push regC
     , Push regD
     , Push regE
     , Push regF
     ]
 
+-- Ignores regA
 popAllRegisters :: [Instruction]
 popAllRegisters = [
       Pop regF
@@ -183,7 +206,6 @@ popAllRegisters = [
     , Pop regD
     , Pop regC
     , Pop regB
-    , Pop regA
     ]
 
 pushArgsToStack :: [AST] -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
@@ -191,10 +213,12 @@ pushArgsToStack asts initialSymbolTable initialFreeAddress =
     let (instructionLists, finalSymbolTable, finalFreeAddress) = 
             foldl (\(insts, st, addr) ast -> 
                 let (newInsts, newSt, newAddr) = constructProgram ast st addr
-                in (insts ++ newInsts, newSt, newAddr)
+                in (insts ++ wrapInstructions newInsts, newSt, newAddr)
             ) ([], initialSymbolTable, initialFreeAddress) asts
-    in (wrapInstructions instructionLists, finalSymbolTable, finalFreeAddress)
+    in (instructionLists, finalSymbolTable, finalFreeAddress)
   where
+    -- save stack pointer into regF
+    -- after evaluating arg, save it in regA, restore the stack pointer from regF, and push the final value back onto the stack from regA
     wrapInstructions insts = 
         [ Push regSP
         , Pop regF

@@ -82,6 +82,7 @@ data AST
     | Call
         { callName :: String
         , callType :: String
+        , callCoordinate :: Coordinate
         , callArgs :: [AST]
         }
     | Fork
@@ -232,10 +233,12 @@ parseCall :: Fields -> Either String AST
 parseCall fields = do
     name <- requireString "name" fields
     typ <- requireString "type" fields
+    coordinate <- requireCoordinate "coordinate" fields
     args <- requireNodes "args" fields
     pure Call
         { callName = name
         , callType = typ
+        , callCoordinate = coordinate
         , callArgs = args
         }
 
