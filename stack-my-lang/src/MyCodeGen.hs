@@ -59,8 +59,7 @@ constructStatements children symbolTable freeAddress =
         ([], symbolTable, freeAddress)
         children
 
-constructConditionalClauses
-    :: [(AST, [AST])]
+constructConditionalClauses :: [(AST, [AST])]
     -> [Instruction]
     -> SymbolTable
     -> Address
@@ -133,6 +132,21 @@ constructProgram (If {ifCond, ifChildren, ifElifs, ifElse}) _ symbolTable freeAd
         elseChildren = fromMaybe [] ifElse
         (elseInstr, elseSymTable, elseFreeAddr) = constructStatements elseChildren symbolTable freeAddress
     in constructConditionalClauses clauses elseInstr elseSymTable elseFreeAddr
+constructProgram (While {whileCond, whileChildren}) _ symbolTable freeAddress = 
+    let (condInstr, condSymTable, condFreeAddr) = constructProgram whileCond 1 symbolTable freeAddress
+        (childrenInstr, childrenSymTable, childrenFreeAddr) = constructStatements whileChildren condSymTable condFreeAddr
+        endJumpOffset = length childrenInstr + 2
+        loopJumpOffset = -(length condInstr + endJumpOffset + 1)
+        instructions =
+            condInstr
+                ++ [
+                    Pop regA
+                    , Branch regA (Rel 2)
+                    , Jump (Rel endJumpOffset)
+                    ]
+                ++ childrenInstr
+                ++ [Jump (Rel loopJumpOffset)]
+    in (instructions, symbolTable, freeAddress)
 constructProgram (Print printValue) _ symbolTable freeAddress =
     let (instructions, newSymbolTable, newFreeAddress) = constructProgram printValue 1 symbolTable freeAddress
     in (instructions ++ [
