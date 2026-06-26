@@ -264,8 +264,8 @@ IR has **no whitespaces** at all - single line.
 | Arithmetics op.           | ✅        | ✅       |
 | Boolean op.               | ✅        | ✅       |
 | Print                     | ✅        | ✅       |
-| Conditionals              | ✅        | ❌       |
-| While loop                | ✅        | ❌       |
+| Conditionals              | ✅        | ✅       |
+| While loop                | ✅        | ✅       |
 | Functions (+1.0)          | ✅        | ❌       |
 | Threads                   | ✅        | ❌       |
 | Locks                     | ✅        | ❌       |
