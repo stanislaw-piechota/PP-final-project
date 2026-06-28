@@ -257,14 +257,22 @@ Here is the api for specific instructions
         }
       }
     ],
-    "children": [/* statements */ ]
+    "children": [/* statements */ ],
+    "coordinate": {
+      "level": 0, // <SCT level>
+      "offset": 0 // <SCT offset> (function def takes 4 bytes of memory)
+    }
   }},
   
   // function call
   {"call":  {
     "name": "<func_name>",
     "type": "<return_type>",
-    "args": [ /* expressions */ ]
+    "args": [ /* expressions */ ],
+    "coordinate": {
+      "level": 0, // <SCT level>
+      "offset": 0 // <SCT offset>
+    }
   }},
   
   // fork (thread start)

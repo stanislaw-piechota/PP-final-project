@@ -46,7 +46,11 @@
             }},
             1
           ]}}
-        ]
+        ],
+        "coordinate": {
+          "level": 1,
+          "offset": 2
+        }
       }},
       {"print": {
         "call": {
@@ -60,10 +64,18 @@
                 "offset": 0
               }
             }}
-          ]
+          ],
+          "coordinate": {
+            "level": 1,
+            "offset": 2
+          }
         }
       }}
-    ]
+    ],
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
   }},
   {"call": {
     "name": "myFunc",
@@ -76,6 +88,10 @@
           "offset": 0
         }
       }}
-    ]
+    ],
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
   }}
 ]}

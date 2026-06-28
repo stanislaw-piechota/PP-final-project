@@ -5,7 +5,7 @@ public enum TypeName {
     BOOL("bool", 2),
     INT("int", 2),
     VOID("void", null),
-    FUNC("function", null);
+    FUNC("function", 4);
 
     private final String typeName;
     private final Integer size;

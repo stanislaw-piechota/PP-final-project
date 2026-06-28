@@ -409,11 +409,12 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
 
         builder.append("],\"children\":[");
         visitFunctionBlock(ctx.block(), returnType);
-        builder.append("]}},");
         symbolTable.removeLevel();
 
         Type funcSign = new Type(FUNC, returnType, argTypes, true);
-        symbolTable.put(funcName, funcSign);
+        Coordinate newCoordinate = symbolTable.put(funcName, funcSign);
+        builder.append(String.format(
+                "],\"coordinate\":{\"level\":%s,\"offset\":%s}}},", newCoordinate.level(), newCoordinate.offset()));
 
         return null;
     }
@@ -513,7 +514,8 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
                     );
             }
         }
-        builder.append("]}},");
+        builder.append(String.format(
+                "],\"coordinate\":{\"level\":%s,\"offset\":%s}}},", coordinate.level(), coordinate.offset()));
 
         return new Type(funcSign.returnType(), true);
     }

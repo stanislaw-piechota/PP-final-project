@@ -5,7 +5,11 @@
     "args": [],
     "children": [
       {"print": 1}
-    ]
+    ],
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
   }},
   {"function": {
     "name": "h",
@@ -22,7 +26,11 @@
     ],
     "children": [
       {"print": 1}
-    ]
+    ],
+    "coordinate": {
+      "level": 0,
+      "offset": 4
+    }
   }},
   {"decl": {
     "name": "t",
@@ -33,7 +41,7 @@
     "type": "int",
     "coordinate": {
       "level": 0,
-      "offset": 0
+      "offset": 8
     }
   }},
   {"decl": {
@@ -45,7 +53,7 @@
     "type": "int",
     "coordinate": {
       "level": 0,
-      "offset": 2
+      "offset": 10
     }
   }},
   {"join": {"get": {
@@ -53,7 +61,7 @@
     "type": "int",
     "coordinate": {
       "level": 0,
-      "offset": 0
+      "offset": 8
     }
   }}},
   {"join": {"get": {
@@ -61,7 +69,7 @@
     "type": "int",
     "coordinate": {
       "level": 0,
-      "offset": 2
+      "offset": 10
     }
   }}}
 ]}

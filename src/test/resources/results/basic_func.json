@@ -5,11 +5,19 @@
     "args": [],
     "children": [
       {"print": 1}
-    ]
+    ],
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
   }},
   {"call": {
     "name": "myFunc",
     "type": "void",
-    "args": []
+    "args": [],
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
   }}
 ]}
