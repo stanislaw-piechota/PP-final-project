@@ -36,8 +36,10 @@ packages:
 # forks / in-progress versions pinned to a git hash. For declarations.lang:
 #
 extra-deps:
-- github: bobismijnnaam/sprockell
-  commit: a8a2862b3198955ca486cd9e94aebe5c49c7f892
+# - github: bobismijnnaam/sprockell
+#   commit: a8a2862b3198955ca486cd9e94aebe5c49c7f892
+- github: lackle1/sprockell
+  commit: fbd9b0fc41b9acfb7a3aa5a9cc24ae724a4884d5
 #
 # extra-deps: []
 

@@ -7,14 +7,14 @@ packages:
 - completed:
     name: sprockell
     pantry-tree:
-      sha256: fcb0fd6a969e00f829c98dd977617b7454b46f553ee0c2bcef894769cd0b2ab8
+      sha256: 7444e3aea3b234a979f7a4fe8ca81bfa5caccb6d2bce6f95c135c227cd8b5522
       size: 1303
-    sha256: 1da166e5290f975765d6189a17379110cde7819a411315b7ae7c75a0329e8b68
-    size: 17666
-    url: https://github.com/bobismijnnaam/sprockell/archive/a8a2862b3198955ca486cd9e94aebe5c49c7f892.tar.gz
+    sha256: 181593e59a51a487cdd968c26cb363cf7015ea48008ee8ed7f1540f06e814a8d
+    size: 17781
+    url: https://github.com/lackle1/sprockell/archive/fbd9b0fc41b9acfb7a3aa5a9cc24ae724a4884d5.tar.gz
     version: 2026.0.0
   original:
-    url: https://github.com/bobismijnnaam/sprockell/archive/a8a2862b3198955ca486cd9e94aebe5c49c7f892.tar.gz
+    url: https://github.com/lackle1/sprockell/archive/fbd9b0fc41b9acfb7a3aa5a9cc24ae724a4884d5.tar.gz
 snapshots:
 - completed:
     sha256: e9e41fa6ceba9911de922014632ed66aa6f87af0cf92fc54f0e1835176a5be06

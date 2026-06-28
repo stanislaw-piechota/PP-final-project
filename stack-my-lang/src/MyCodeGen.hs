@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module MyCodeGen
-    ( codeGen ) where
+module MyCodeGen where
+    -- ( codeGen ) where
 
 import Sprockell
 import ParseJSON (AST(..), Coordinate(..), ElseIfBranch(..), FunctionArg(..))
@@ -158,63 +158,74 @@ constructProgram (Print printValue) _ symbolTable freeAddress =
 -- Function definitions:
 -- ends with return value in regA, which needs to be pushed onto the stack by the caller
 -- `functionCoordinate` is not properly defined right now
-constructProgram (Function {functionName, functionType, functionCoordinate, functionArgs, functionChildren}) symbolTable freeAddress = 
-        -- Set symbol table values (first instruction location and total size of arguments)
+constructProgram (Function {functionName, functionType, functionCoordinate, functionArgs, functionChildren}) _ symbolTable freeAddress = 
+        -- Set symbol table values (first instruction location and number of arguments, used for resetting the stack)
     let (declAddress1, newSymbolTable1, nextFreeAddress1) = getOrCreateAddress functionCoordinate "int" symbolTable freeAddress
         functionCoordinate' = functionCoordinate { offset = offset functionCoordinate + 2 }
         (declAddress2, newSymbolTable2, nextFreeAddress2) = getOrCreateAddress functionCoordinate' "int" newSymbolTable1 nextFreeAddress1
         definitionInstr = [
-              Load (ImmValue 1) regA -- Load position of first instruction, from label or something
+              Load (AddrLabel functionName) regA -- Load position of first instruction, from label
             , Store regA (DirAddr declAddress1)
-            , Load (ImmValue (getFuncArgSize functionArgs)) regA
+            , Load (ImmValue (length functionArgs)) regA
             , Store regA (DirAddr declAddress2)
             ]
 
         -- save args from to stack to local memory
         (argSaveInstr, newSymbolTable3, nextFreeAddress3) = saveArgsToMem functionArgs newSymbolTable2 nextFreeAddress2
         (childrenInstr, newSymbolTable4, nextFreeAddress4) = collectInstrs functionChildren newSymbolTable3 nextFreeAddress3
-        bodyInstr = argSaveInstr ++ childrenInstr
+        endLabel = functionName ++ "_end"
 
-        -- add a Jump instruction to the end of the function (instead of executing it at the time of definition)
-        definitionInstr' = definitionInstr ++ [Jump $ Rel $ (length bodyInstr) + 1]
+        -- pop return address into regE, to be used later in Return
+        bodyInstr = [SetLabel functionName, Pop regE] ++ argSaveInstr ++ childrenInstr ++ [SetLabel endLabel]
+
+        -- add a Jump instruction to the end of the function (so we don't run it at the time of definition)
+        definitionInstr' = definitionInstr ++ [Jump (TargetLabel endLabel)]
     in (definitionInstr' ++ bodyInstr, newSymbolTable4, nextFreeAddress4)
 
 -- Return statements:
-constructProgram (Return ast) symbolTable freeAddress = 
-    let (evalInstr, newSymbolTable, nextFreeAddress) = constructProgram ast symbolTable freeAddress
-        -- save return value to regA, restore stack pointer from regF, pop return address and jump
+constructProgram (Return ast) _ symbolTable freeAddress = 
+    let (evalInstr, newSymbolTable, nextFreeAddress) = constructProgram ast 1 symbolTable freeAddress
+        -- save return value to regA, restore stack pointer from regF, jump to return address (saved at beginning of function)
         instr = evalInstr ++ [
               Pop regA
             , Push regF
             , Pop regSP
-            , Pop regB
-            , Jump (Ind regB)
+            , Jump (Ind regE)
             ]
         in (instr, newSymbolTable, nextFreeAddress)
 
 -- Function calls:
-constructProgram (Call {callName, callType, callCoordinate, callArgs}) symbolTable freeAddress =
+constructProgram (Call {callName, callType, callCoordinate, callArgs}) needsPush symbolTable freeAddress =
     let (argStackInstr, newSymbolTable, nextFreeAddress) = pushArgsToStack callArgs symbolTable freeAddress
         argSizeCoordinate = callCoordinate { offset = offset callCoordinate + 2 }
-        instr = pushAllRegisters ++ [
-              Load (ImmValue 99) regA -- replace with label for return address
+        instr = pushAllRegisters ++ argStackInstr ++ [
+              -- Push return address. Add 6 to get to start of popAllRegisters
+              Load (ImmValue 6) regA
+            , Compute Add regPC regA regA
             , Push regA
-            ] ++ argStackInstr ++ [
-              Push regSP
-            , Pop regF
+
+              -- Save stack pointer
             , Load (DirAddr $ addressOfCoordinate argSizeCoordinate newSymbolTable) regA
-            , Compute Sub regF regA regF
+            , Compute Add regSP regA regF
+
+              -- Jump to function
             , Load (DirAddr $ addressOfCoordinate callCoordinate newSymbolTable) regA
             , Jump (Ind regA)
-            -- LABEL FOR RETURN ADDRESS
-            ] ++ popAllRegisters ++ [
-                Push regA
-            ]
+            ] ++ ([Push regA | needsPush > 0]) ++ popAllRegisters ++ printRegisters
     in (instr, newSymbolTable, nextFreeAddress)
 
-getFuncArgSize :: [FunctionArg] -> Int
-getFuncArgSize [] = 0
-getFuncArgSize (FunctionArg {argName, argType, argCoordinate}:args) = (sizeOfType argType) + getFuncArgSize args
+-- DEBUG
+printRegisters :: [Instruction]
+printRegisters = [
+      WriteInstr regA numberIO
+    , WriteInstr regB numberIO
+    , WriteInstr regC numberIO
+    , WriteInstr regD numberIO
+    , WriteInstr regE numberIO
+    , WriteInstr regF numberIO
+    , WriteInstr regSP numberIO
+    , WriteInstr regPC numberIO
+    ]
 
 -- Left-recursive because right-most arg is on top of the stack
 saveArgsToMem :: [FunctionArg] -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
@@ -230,7 +241,7 @@ collectInstrs [] st fa = ([], st, fa)
 collectInstrs (ast:asts) symbolTable freeAddress =
     (insts ++ restInsts, finalSymbolTable, finalFreeAddress)
     where
-        (insts, newSymbolTable, nextFreeAddress) = constructProgram ast symbolTable freeAddress
+        (insts, newSymbolTable, nextFreeAddress) = constructProgram ast 0 symbolTable freeAddress
         (restInsts, finalSymbolTable, finalFreeAddress) = collectInstrs asts newSymbolTable nextFreeAddress
 
 -- Ignores regA
@@ -257,7 +268,7 @@ pushArgsToStack :: [AST] -> SymbolTable -> Address -> ([Instruction], SymbolTabl
 pushArgsToStack asts initialSymbolTable initialFreeAddress =
     let (instructionLists, finalSymbolTable, finalFreeAddress) = 
             foldl (\(insts, st, addr) ast -> 
-                let (newInsts, newSt, newAddr) = constructProgram ast st addr
+                let (newInsts, newSt, newAddr) = constructProgram ast 1 st addr
                 in (insts ++ wrapInstructions newInsts, newSt, newAddr)
             ) ([], initialSymbolTable, initialFreeAddress) asts
     in (instructionLists, finalSymbolTable, finalFreeAddress)
@@ -275,9 +286,41 @@ pushArgsToStack asts initialSymbolTable initialFreeAddress =
         , Push regA
         ]
 
+findLabels :: [Instruction] -> ([Instruction], [(String, Int)])
+findLabels instrs = findLabels' instrs 0 [] []
+
+-- Remaining instructions, current line number, instructions with labels removed, label table
+findLabels' :: [Instruction] -> Int -> [Instruction] -> [(String, Int)] -> ([Instruction], [(String, Int)])
+findLabels' [] _ labelsRemoved labels = (labelsRemoved, labels)
+findLabels' (SetLabel name : rest) lineNum labelsRemoved labels = findLabels' rest lineNum labelsRemoved (labels ++ [(name, lineNum)])
+findLabels' (instr:rest) lineNum labelsRemoved labels = findLabels' rest (lineNum + 1) (labelsRemoved ++ [instr]) labels
+
+-- skips if label doesn't exist. Silent fail for now
+replaceLabels :: [Instruction] -> [(String, Int)] -> [Instruction]
+replaceLabels instr labels = replaceLabels' instr (Map.fromList labels) []
+
+replaceLabels' :: [Instruction] -> Map String Int -> [Instruction] -> [Instruction]
+replaceLabels' [] _ newInstr = newInstr
+replaceLabels' (Load (AddrLabel name) reg : rest) labels newInstr =
+    case Map.lookup name labels of
+        Just addr -> replaceLabels' rest labels (newInstr ++ [Load (ImmValue addr) reg])
+        Nothing -> replaceLabels' rest labels newInstr
+replaceLabels' (Jump (TargetLabel name) : rest) labels newInstr =
+    case Map.lookup name labels of
+        Just addr -> replaceLabels' rest labels (newInstr ++ [Jump (Abs addr)])
+        Nothing -> replaceLabels' rest labels newInstr
+replaceLabels' (Branch reg (TargetLabel name) : rest) labels newInstr =
+    case Map.lookup name labels of
+        Just addr -> replaceLabels' rest labels (newInstr ++ [Branch reg (Abs addr)])
+        Nothing -> replaceLabels' rest labels newInstr
+replaceLabels' (instr : rest) labels newInstr = replaceLabels' rest labels (newInstr ++ [instr])
+
+evalLabels :: [Instruction] -> [Instruction]
+evalLabels instr = replaceLabels newInstr labelTable
+    where (newInstr, labelTable) = findLabels instr
 
 codeGen :: AST -> [Instruction]
-codeGen ast = instructions ++ [EndProg]
+codeGen ast = evalLabels instructions ++ [EndProg]
     where
         (instructions, _, _) = constructProgram ast 0 Map.empty 0
 
