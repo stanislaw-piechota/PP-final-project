@@ -1,0 +1,20 @@
+{"program": [
+  {"decl": {
+    "name": "var1",
+    "type": "int",
+    "expr": null,
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"decl": {
+    "name": "var2",
+    "type": "bool",
+    "expr": null,
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }}
+]}

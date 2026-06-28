@@ -1,0 +1,47 @@
+{"program": [
+  {"function": {
+    "name": "myFunc",
+    "type": "int",
+    "args": [
+      {
+        "name": "x",
+        "type": "int",
+        "coordinate": {
+          "level": 1,
+          "offset": 0
+        }
+      },
+      {
+        "name": "y",
+        "type": "int",
+        "coordinate": {
+          "level": 1,
+          "offset": 2
+        }
+      }
+    ],
+    "children": [
+      {"return": {"add": [
+        {"get": {
+          "name": "x",
+          "coordinate": {
+            "level": 1,
+            "offset": 0
+          }
+        }},
+        {"get": {
+          "name": "y",
+          "coordinate": {
+            "level": 1,
+            "offset": 2
+          }
+        }}
+      ]}}
+    ]
+  }},
+  {"call": {
+    "name": "myFunc",
+    "type": "int",
+    "args": [1, 1]
+  }}
+]}

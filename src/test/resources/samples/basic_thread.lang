@@ -1,0 +1,13 @@
+function f(): void {
+    print 1;
+}
+
+function h(x: int): void {
+    print 1;
+}
+
+t := fork f;
+t1 := fork h(1);
+
+join t;
+join t1;

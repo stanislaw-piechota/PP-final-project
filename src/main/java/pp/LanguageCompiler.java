@@ -372,7 +372,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
         symbolTable.addScope();
         if (statement != null) {
             visit(statement);
-        } else
+        } else if (block != null)
             visit(block);
         symbolTable.removeScope();
     }
@@ -403,7 +403,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             Coordinate newCoordinate = symbolTable.put(argName, new Type(argType, true)); // TODO: add support for passing function as argument
 
             assert argType != null;
-            builder.append(String.format("{\"arg\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
+            builder.append(String.format("{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}},",
                     argName, argType, newCoordinate.level(), newCoordinate.offset()), false);
         }
 
@@ -419,10 +419,12 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
     }
 
     public void visitFunctionBlock(LanguageParser.BlockContext ctx, TypeName expectedType) {
+        int returnCount = 0;
         isFunctionBlock = true;
 
         for (LanguageParser.StatementContext statement : ctx.statement()) {
             if (statement instanceof LanguageParser.ReturnContext) {
+                returnCount++;
                 Type value = visit(statement);
                 if (value == null || value.empty()) // TODO: add support for void return
                     errorListener.syntaxError(
@@ -438,6 +440,12 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             } else
                 visit(statement);
         }
+
+        if (returnCount == 0 && expectedType != null && expectedType != TypeName.VOID)
+            errorListener.syntaxError(
+                    ctx.getStart(),
+                    "No return statement in not void function"
+            );
 
         isFunctionBlock = false;
     }
@@ -464,7 +472,13 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
         if (coordinate == null) {
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
-                    String.format("undefined function call `%s`", funcName)
+                    String.format("Undefined function call `%s`", funcName)
+            );
+            return null;
+        } else if (coordinate.type().typeName() != FUNC) {
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("Type %s is not callable", coordinate.type().typeName().toString())
             );
             return null;
         }
@@ -473,14 +487,31 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
 
         builder.append(String.format("{\"call\":{\"name\":\"%s\",\"type\":\"%s\",\"args\":[",
                 funcName, funcSign.returnType()), false);
-        for (int i=0; i<ctx.expression().size(); i++) {
-            Type argType = visit(ctx.expression(i));
-            if (argType.typeName() != funcSign.getArgs().get(i))
-                errorListener.syntaxError(
-                        ctx.expression(i).getStart(),
-                        String.format("argument type mismatch (declared `%s`, actual `%s)`",
-                                argType.typeName(), funcSign.getArgs().get(i))
-                );
+        if (coordinate.type().getArgs().size() != ctx.expression().size())
+            errorListener.syntaxError(
+                    ctx.LPAR().getSymbol(),
+                    String.format(
+                            "Argument count mismatch (expected %s, actual %s",
+                            coordinate.type().getArgs().size(),
+                            ctx.expression().size()
+                    )
+            );
+        else {
+            for (int i=0; i<ctx.expression().size(); i++) {
+                Type argType = visit(ctx.expression(i));
+                if (argType == null)
+                    errorListener.syntaxError(
+                            ctx.expression(i).getStart(),
+                            String.format("argument type mismatch (declared `%s`, actual `undefined`)",
+                                    funcSign.getArgs().get(i))
+                    );
+                else if (argType.typeName() != funcSign.getArgs().get(i))
+                    errorListener.syntaxError(
+                            ctx.expression(i).getStart(),
+                            String.format("argument type mismatch (declared `%s`, actual `%s`)",
+                                    funcSign.getArgs().get(i), argType.typeName())
+                    );
+            }
         }
         builder.append("]}},");
 
@@ -500,12 +531,20 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             return null;
         }
 
+        Type funcSign = coordinate.type();
+        TypeName resultType = FORK.getResultType(funcSign.typeName());
+        if (resultType == null) {
+            errorListener.syntaxError(
+                    ctx.ID().getSymbol(),
+                    String.format("invalid argument type (expected `function`, actual `%s`)", funcSign.typeName())
+            );
+            return null;
+        }
+
         builder.append(String.format("{\"fork\":{\"target\":\"%s\",\"args\":[",
                 targetName), false);
 
-        Type funcSign = coordinate.type();
         for (int i=0; i<ctx.expression().size(); i++) {
-            builder.append("{\"arg\":", false);
             Type argType = visit(ctx.expression(i));
             TypeName expectedTypeName = funcSign.getArgs().get(i);
 
@@ -519,17 +558,8 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
                         ctx.expression(i).getStart(),
                         String.format("type mismatch (declared `%s`, actual `%s`)", expectedTypeName, argType.typeName())
                 );
-            } else {
-                builder.append("},");
             }
         }
-
-        TypeName resultType = FORK.getResultType(funcSign.typeName());
-        if (resultType == null)
-            errorListener.syntaxError(
-                    ctx.ID().getSymbol(),
-                    String.format("invalid argument type (expected `function`, actual `%s`)", funcSign.typeName())
-            );
 
         builder.append("]}},");
         return new Type(resultType, true);
@@ -596,7 +626,7 @@ public class LanguageCompiler extends LanguageBaseVisitor<Type> {
             );
 
         builder.append(String.format(
-                "{\"%s\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,offset:\"%s\"}}},",
+                "{\"%s\":{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}}},",
                 type, targetName, coordinate.type().typeName(), coordinate.level(), coordinate.offset()), false);
     }
 }

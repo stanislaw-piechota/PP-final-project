@@ -1,0 +1,15 @@
+{"program": [
+  {"function": {
+    "name": "myFunc",
+    "type": "int",
+    "args": [],
+    "children": [
+      {"return": 1}
+    ]
+  }},
+  {"call": {
+    "name": "myFunc",
+    "type": "int",
+    "args": []
+  }}
+]}

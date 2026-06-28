@@ -1,0 +1,7 @@
+myFunc := 1;
+
+function myFunc(): void {
+    print 1;
+}
+
+myFunc();

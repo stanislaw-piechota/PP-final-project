@@ -1,0 +1,36 @@
+{"program": [
+  {"decl": {
+    "name": "var1",
+    "type": "int",
+    "expr": 0,
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"decl": {
+    "name": "var2",
+    "type": "bool",
+    "expr": false,
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }},
+  {"set": {
+    "name": "var1",
+    "expr": 2,
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"set": {
+    "name": "var2",
+    "expr": true,
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }}
+]}

@@ -13,10 +13,10 @@ statement: ID ':' TYPE ('=' expression)? ';'    # explicitDeclaration
          | FUNC ID LPAR (ID ':' TYPE (',' ID ':' TYPE)*)? RPAR ':' TYPE LBRACK block RBRACK # funcDef
          | RETURN expression ';'                # return;
 conditional: if elseif* else?;
-if: IF expression ((LBRACK block RBRACK) | statement);
-elseif: ELSEIF expression ((LBRACK block RBRACK) | statement);
-else: ELSE ((LBRACK block RBRACK) | statement);
-whileLoop: WHILE expression ((LBRACK block RBRACK) | statement);
+if: IF expression ((LBRACK block? RBRACK) | statement);
+elseif: ELSEIF expression ((LBRACK block? RBRACK) | statement);
+else: ELSE ((LBRACK block? RBRACK) | statement);
+whileLoop: WHILE expression ((LBRACK block? RBRACK) | statement | ';');
 expression: literal                         # exprLit
           | FORK ID (LPAR expression (',' expression)* RPAR)? # threadStart
           | ID LPAR (expression (',' expression)*)? RPAR # funcCall
@@ -30,11 +30,11 @@ expression: literal                         # exprLit
           | expression LE expression        # le
           | expression GE expression        # ge
           | ID ':=' expression              # implicitDeclaration
-          | ID '=' expression               # assignment
           | expression EQUAL expression     # equal
           | expression NOT_EQUAL expression # notEqual
           | expression AND expression       # and
-          | expression OR expression        # or;
+          | expression OR expression        # or
+          | ID '=' expression               # assignment;
 literal: int | bool;
 bool: BOOL;
 int: SUB? INTEGER;

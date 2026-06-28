@@ -1,0 +1,9 @@
+function myFunc(x: int): void {
+    function inc(x: int): int {
+        return x+1;
+    }
+
+    print inc(x);
+}
+
+myFunc(inc(1));

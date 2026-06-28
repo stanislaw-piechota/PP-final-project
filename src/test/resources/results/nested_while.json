@@ -1,0 +1,13 @@
+{"program": [
+  {"while": {
+    "cond": true,
+    "children": [
+      {"while": {
+        "cond": 2,
+        "children": [
+          {"print": 1}
+        ]
+      }}
+    ]
+  }}
+]}

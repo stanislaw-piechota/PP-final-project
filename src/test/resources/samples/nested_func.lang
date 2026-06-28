@@ -1,0 +1,11 @@
+x := 1;
+
+function myFunc(x: int): void {
+    function inc(x: int): int {
+        return x+1;
+    }
+
+    print inc(x);
+}
+
+myFunc(x);

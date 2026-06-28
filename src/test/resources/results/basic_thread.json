@@ -1,0 +1,67 @@
+{"program": [
+  {"function": {
+    "name": "f",
+    "type": "void",
+    "args": [],
+    "children": [
+      {"print": 1}
+    ]
+  }},
+  {"function": {
+    "name": "h",
+    "type": "void",
+    "args": [
+      {
+        "name": "x",
+        "type": "int",
+        "coordinate": {
+          "level": 1,
+          "offset": 0
+        }
+      }
+    ],
+    "children": [
+      {"print": 1}
+    ]
+  }},
+  {"decl": {
+    "name": "t",
+    "expr": {"fork": {
+      "target": "f",
+      "args": []
+    }},
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"decl": {
+    "name": "t1",
+    "expr": {"fork": {
+      "target": "h",
+      "args": [1]
+    }},
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }},
+  {"join": {"get": {
+    "name": "t",
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }}},
+  {"join": {"get": {
+    "name": "t1",
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }}}
+]}

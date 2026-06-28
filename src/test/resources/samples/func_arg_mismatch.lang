@@ -1,0 +1,5 @@
+function myFunc(x: int): void {
+    print x;
+}
+
+myFunc(true);

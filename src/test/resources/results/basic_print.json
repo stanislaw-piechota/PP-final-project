@@ -1,0 +1,21 @@
+{"program": [
+  {"print": 2},
+  {"print": {"add": [2, 3]}},
+  {"print": true},
+  {"print": {"decl": {
+    "name": "val1",
+    "expr": 2,
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }}},
+  {"print": {"get": {
+    "name": "val1",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }}}
+]}

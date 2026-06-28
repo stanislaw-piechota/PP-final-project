@@ -30,6 +30,7 @@ mvn verify
 Support for following native types:
 - **int**
 - **bool** (`true` / `false`)
+- **void**
 
 ### 2.2. Variables
 Variable name _should_ follow camel case convention. 
@@ -106,7 +107,41 @@ while <expr> {
 ```
 
 ### 2.6. Functions
-> **TODO**: ADD FUNCTION DOCS
+If function return type is not void then return statement is required, and
+it must match declared return type. If function is not supposed to return a value
+declare it as a type `void`.
+
+You can create nested function. Inside the inner scope of a function it is possible
+to shadow variable names. Function declared in inner scope of a function are only 
+accessible in this scope or in children scopes.
+
+Call must be performed on a function - otherwise it produces an error.
+Argument must match exactly the number of declared arguments and the types
+must be matching as well.
+
+```
+// function definition
+function <function_id>(<arg_name>: <arg_type>[, ...]): <return_type> {
+    // function body
+    
+    return <expr>;
+}
+
+// example of nested function
+function f(x: int): void {
+    function g(x: int): int {
+        return x;
+    }
+    
+    print g(x);
+}
+
+// function call
+<function_id>(<expr>[, ...])
+
+// example call
+f(1);
+```
 
 ### 2.7. Concurrency
 To deal with concurrency we use **fork**/**join** convention.
@@ -121,7 +156,18 @@ fork <threadId> <targetFunc> (<expr>[, <expr>]) // passing parameters
 join <threadId>;
 ```
 
-> **TODO**: Add LOCK grammars
+### 2.8. Locks
+
+To lock and unlock a resource a corresponding identifier is required.
+
+```
+lock <resource_id>;
+unlock <resource_id>;
+
+// that is wrong
+lock 1;
+unlock true;
+```
 
 ## 3. Intermediate Representation
 
@@ -134,15 +180,13 @@ Here is the api for specific instructions
 ```json5
 [
   // program (as a whole)
-  {"program":  [
-    { /* statements */ }
-  ]},
+  {"program":  [/* statements */]},
   
   // declaration
   {"decl": {
     "name": "<name>",
     "type": "<type>",
-    "value": "<expression_obj>",
+    "expr": "<expression_obj>",
     "coordinate": {
       "level": 0, // <SCT level>
       "offset": 0 // <SCT level offset>
@@ -152,7 +196,7 @@ Here is the api for specific instructions
   // assignment 
   {"set":  {
     "name": "<name>",
-    "value": "<expression_obj>",
+    "expr": "<expression_obj>",
     "coordinate": {
       "level": 0, // <SCT level>
       "offset": 0 // <SCT level offset>
@@ -185,7 +229,9 @@ Here is the api for specific instructions
         "children": [ /* statements */ ]
       }
     ],
-    "else": [ /* statements */ ] // if no else present => null
+    "else": {
+      "children": [ /* statements */ ]
+    } // if no else present => null
   },
   
   // while loop
@@ -228,9 +274,7 @@ Here is the api for specific instructions
   }},
   
   // join (thread end)
-  {"join":  {
-    "target": "<thread_id>" // of int type
-  }},
+  {"join":  "<thread_id>"}, // of int type,
   
   // lock
   {"lock":  {

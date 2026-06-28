@@ -1,0 +1,4 @@
+x := 1;
+
+lock x;
+unlock x;

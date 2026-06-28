@@ -1,0 +1,27 @@
+{"program": [
+  {"decl": {
+    "name": "x",
+    "expr": 1,
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"lock": {
+    "name": "x",
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"unlock": {
+    "name": "x",
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }}
+]}

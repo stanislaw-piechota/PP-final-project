@@ -1,0 +1,7 @@
+if 1 + 2 == 3
+    if 2 + 3 == 5
+        print 1;
+
+    // this else will be a part of the inner if
+    else
+        print 2;

@@ -1,0 +1,15 @@
+{"program": [
+  {"function": {
+    "name": "myFunc",
+    "type": "void",
+    "args": [],
+    "children": [
+      {"print": 1}
+    ]
+  }},
+  {"call": {
+    "name": "myFunc",
+    "type": "void",
+    "args": []
+  }}
+]}

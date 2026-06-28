@@ -1,0 +1,52 @@
+{"program": [
+  {"decl": {
+    "name": "var1",
+    "type": "int",
+    "expr": 0,
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"decl": {
+    "name": "var2",
+    "type": "bool",
+    "expr": false,
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }},
+  {"set": {
+    "name": "var1",
+    "expr": {"decl": {
+      "name": "var3",
+      "expr": 2,
+      "type": "int",
+      "coordinate": {
+        "level": 0,
+        "offset": 4
+      }
+    }},
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"set": {
+    "name": "var2",
+    "expr": {"decl": {
+      "name": "var4",
+      "expr": true,
+      "type": "bool",
+      "coordinate": {
+        "level": 0,
+        "offset": 6
+      }
+    }},
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }}
+]}

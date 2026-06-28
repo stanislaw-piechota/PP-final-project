@@ -1,0 +1,19 @@
+{"program": [
+  {
+    "if": {
+      "cond": {"eq": [
+        {"add": [1, 2]},
+        3
+      ]},
+      "children": [
+        {"print": 1}
+      ]
+    },
+    "elifs": [],
+    "else": {
+      "children": [
+        {"print": 2}
+      ]
+    }
+  }
+]}

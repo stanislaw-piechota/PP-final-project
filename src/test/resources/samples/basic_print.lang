@@ -1,0 +1,5 @@
+print 2;
+print 2+3;
+print true;
+print val1 := 2;
+print val1;

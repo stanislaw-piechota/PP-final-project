@@ -1,0 +1,5 @@
+function myFunc(): void {
+    print 1;
+}
+
+myFunc();

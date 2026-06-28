@@ -1,0 +1,5 @@
+function myFunc(): int {
+    return 1;
+}
+
+myFunc();

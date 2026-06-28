@@ -1,0 +1,78 @@
+{"program": [
+  {"decl": {
+    "name": "var1",
+    "expr": 1,
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"decl": {
+    "name": "var2",
+    "expr": true,
+    "type": "bool",
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }},
+  {"set": {
+    "name": "var1",
+    "expr": {"add": [
+      {"get": {
+        "name": "var1",
+        "coordinate": {
+          "level": 0,
+          "offset": 0
+        }
+      }},
+      1
+    ]},
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"set": {
+    "name": "var2",
+    "expr": {"or": [
+      false,
+      {"get": {
+        "name": "var2",
+        "coordinate": {
+          "level": 0,
+          "offset": 2
+        }
+      }}
+    ]},
+    "coordinate": {
+      "level": 0,
+      "offset": 2
+    }
+  }},
+  {"decl": {
+    "name": "var3",
+    "expr": {"mul": [
+      {"get": {
+        "name": "var1",
+        "coordinate": {
+          "level": 0,
+          "offset": 0
+        }
+      }},
+      {"get": {
+        "name": "var1",
+        "coordinate": {
+          "level": 0,
+          "offset": 0
+        }
+      }}
+    ]},
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 4
+    }
+  }}
+]}

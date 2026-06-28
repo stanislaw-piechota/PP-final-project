@@ -1,0 +1,81 @@
+{"program": [
+  {"decl": {
+    "name": "x",
+    "expr": 1,
+    "type": "int",
+    "coordinate": {
+      "level": 0,
+      "offset": 0
+    }
+  }},
+  {"function": {
+    "name": "myFunc",
+    "type": "void",
+    "args": [
+      {
+        "name": "x",
+        "type": "int",
+        "coordinate": {
+          "level": 1,
+          "offset": 0
+        }
+      }
+    ],
+    "children": [
+      {"function": {
+        "name": "inc",
+        "type": "int",
+        "args": [
+          {
+            "name": "x",
+            "type": "int",
+            "coordinate": {
+              "level": 2,
+              "offset": 0
+            }
+          }
+        ],
+        "children": [
+          {"return": {"add": [
+            {"get": {
+              "name": "x",
+              "coordinate": {
+                "level": 2,
+                "offset": 0
+              }
+            }},
+            1
+          ]}}
+        ]
+      }},
+      {"print": {
+        "call": {
+          "name": "inc",
+          "type": "int",
+          "args": [
+            {"get": {
+              "name": "x",
+              "coordinate": {
+                "level": 1,
+                "offset": 0
+              }
+            }}
+          ]
+        }
+      }}
+    ]
+  }},
+  {"call": {
+    "name": "myFunc",
+    "type": "void",
+    "args": [
+      {"get": {
+        "name": "x",
+        "coordinate": {
+          "level": 0,
+          "offset": 0
+        }
+      }}
+    ]
+  }}
+]}

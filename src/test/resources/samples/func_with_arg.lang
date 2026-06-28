@@ -1,0 +1,5 @@
+function myFunc(x: int, y: int): int {
+    return x+y;
+}
+
+myFunc(1, 1);

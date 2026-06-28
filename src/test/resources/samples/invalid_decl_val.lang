@@ -1,0 +1,3 @@
+// invalid variable identifiers
+var1: int = false;
+var2: bool = 0;
