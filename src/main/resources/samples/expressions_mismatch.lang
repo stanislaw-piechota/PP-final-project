@@ -1,1 +1,0 @@
-var2 := (var3 = 4;) // cannot use statements as expressions

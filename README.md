@@ -1,13 +1,30 @@
 # Programming Paradigms Final Project
 
 
-## 1. Useful commands
-### 1.1. (Re)generate ANTLR grammar
+## 1. Commands
+### 1.1. Create executables of compiler
+Remember about `chmod +x` before executing the script.
+
+```bash
+./compile_executables
+```
+
+### 1.2. Use compiler
+```bash
+./langC <input_path>
+```
+
+To learn further about compiler parameters execute
+```bash
+./langC -h
+```
+
+### 1.3. (Re)generate ANTLR grammar
 ```bash
 mvn generate-sources
 ```
 
-### 1.2. (Re)build project
+### 1.4. (Re)build project
 ```bash
 # simplest version
 mvn install
@@ -19,7 +36,7 @@ mvn clean install
 mvn install -DskipTests
 ```
 
-### 1.3. Run ONLY tests
+### 1.5. Run ONLY tests
 ```bash
 mvn verify
 ```
@@ -32,7 +49,7 @@ Support for following native types:
 - **bool** (`true` / `false`)
 - **void**
 
-### 2.2. Variables
+### 2.2a. Variables
 Variable name _should_ follow camel case convention. 
 The identifier consists of:
 - at least **1** letter at the beginning
@@ -58,6 +75,42 @@ inferredVariableTwo := true;
 
 It is possible to redeclare a variable as long as it is in 
 different scope (block), otherwise it will cause an error.
+
+It is possible to use **implicit** declaration as an expression.
+
+
+### 2.3. Assignment
+You can assign a value only to a declared identifier, otherwise it gives a compilation error.
+The newly assigned expression must match declared variable type, otherwise it gives an error.
+
+```
+<identifier> = <new_expression>;
+```
+
+It is possible to use assignment as en expression, ex.
+```
+var2: int = (var1 = var1 + 1); 
+```
+
+
+### 2.4. Arithmetic and boolean operations
+Each operation has predefined restrictions regarding argument types and the 
+resulting type. The following operations are allowed (with corresponding type restrictions)
+
+| Operation      | Symbol   | Arguments  | Result |
+|----------------|----------|------------|--------|
+| Addition       | **+**    | int, int   | int    |
+| Subtraction    | **-**    | int, int   | int    |
+| Multiplication | **_*_**  | int, int   | int    |
+| Not            | **!**    | bool       | bool   |
+| And            | **&&**   | bool, bool | bool   |
+| Or             | **\|\|** | bool, bool | bool   |
+| Equal          | **==**   | bool, bool | bool   |
+|                |          | int, int   | bool   |
+| Non-equal      | **!=**   | bool, bool | bool   |
+|                |          | int, int   | bool   |
+| And            | **&&**   | bool, bool | bool   |
+
 
 ### 2.3. Basic logging
 Standard output is managed with keyword **print**.
@@ -310,7 +363,7 @@ IR has **no whitespaces** at all - single line.
 
 ## 4. Feature roadmap
 
-| Feature Name              | Frontend | Backend |
+|  Feature Name             | Frontend | Backend |
 |---------------------------|----------|---------|
 | Variables                 | ✅        | ✅       |
 | Arithmetics op.           | ✅        | ✅       |

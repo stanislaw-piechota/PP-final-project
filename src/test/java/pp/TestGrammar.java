@@ -164,7 +164,7 @@ public class TestGrammar {
         errorListener.throwException();
 
         // elaboration phase
-        LanguageCompiler compiler = new LanguageCompiler();
+        LanguageElaborator compiler = new LanguageElaborator();
         String result = compiler.compile(tree);
 
         assertTrue(jsonEqual(readFile(

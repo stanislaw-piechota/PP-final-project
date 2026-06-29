@@ -42,3 +42,6 @@ build/
 ### ANTLR4 ###
 **/*.interp
 **/*.tokens
+
+bin
+dependency-reduced-pom.xml

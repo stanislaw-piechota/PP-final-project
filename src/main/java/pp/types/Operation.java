@@ -11,6 +11,7 @@ public enum Operation {
     MUL("mul", List.of(new OpType(INT, INT, INT))),
     AND("and", List.of(new OpType(BOOL, BOOL, BOOL))),
     OR("or", List.of(new OpType(BOOL, BOOL, BOOL))),
+    NOT("not", List.of(new OpType(BOOL, BOOL))),
     EQ("eq", List.of(
             new OpType(BOOL, BOOL, BOOL),
             new OpType(BOOL, INT, INT)

@@ -18,7 +18,7 @@ import java.util.List;
 import static pp.types.Operation.*;
 import static pp.types.TypeName.*;
 
-public class LanguageCompiler extends LanguageBaseVisitor<Type> {
+public class LanguageElaborator extends LanguageBaseVisitor<Type> {
     private final ErrorListener errorListener = new ErrorListener();
     private final SymbolTable symbolTable = new SymbolTable();
     private final CustomStringBuilder builder = new CustomStringBuilder();

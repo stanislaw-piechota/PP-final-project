@@ -1,9 +1,0 @@
-function printAction(f: func, x: int): void {
-    print f(x);
-}
-
-function increment(x: int): int {
-    return x + 1;
-}
-
-printAction(increment, 3);

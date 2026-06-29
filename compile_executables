@@ -1,0 +1,31 @@
+#!/bin/bash
+
+if [ ! -d "bin" ]; then
+  echo "Creating bin directory"
+  mkdir bin
+fi
+
+mvn clean install -q -Dmaven.test.redirectTestOutputToFile=true
+if [ $? -ne 0 ]; then
+  echo "FATAL ERROR: Frontend compilation failed"
+  exit 1
+fi
+echo "INFO: Frontend compiled successfully"
+frontendArtifact=$(mvn help:evaluate -Dexpression=project.artifactId -q -DforceStdout)
+frontendVersion=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+frontendExecutable="$frontendArtifact-$frontendVersion.jar"
+echo "INFO: Copying frontend executable"
+cp "target/$frontendExecutable" bin/frontend.jar
+
+cd stack-my-lang
+stack install
+
+if [ $? -ne 0 ]; then
+  echo "FATAL ERROR: Backend compilation failed"
+  exit 1
+fi
+echo "INFO: Backend compiled successfully"
+echo "INFO: Copying backend executable"
+cp $HOME/.local/bin/my-lang-exe ../bin/backend
+
+echo "Exiting"

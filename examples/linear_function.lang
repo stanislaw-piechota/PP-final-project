@@ -1,0 +1,5 @@
+function f(a: int, b: int, x: int): int {
+    return a*x+b;
+}
+
+print f(1, 0, 10);
