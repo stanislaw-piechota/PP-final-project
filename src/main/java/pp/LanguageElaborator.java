@@ -137,21 +137,18 @@ public class LanguageElaborator extends LanguageBaseVisitor<Type> {
         String varName = ctx.ID().getText();
         Coordinate currentValue = symbolTable.get(varName);
 
-        if (currentValue == null)
+        if (currentValue == null) {
             errorListener.syntaxError(
                     ctx.ID().getSymbol(),
                     String.format("assignment of undeclared variable `%s`", varName)
             );
+            return null;
+        }
 
         builder.append(String.format("{\"set\":{\"name\":\"%s\",\"expr\":", varName), false);
 
         Type newValue = visit(ctx.expression());
-        if (currentValue == null)
-            errorListener.syntaxError(
-                    ctx.ID().getSymbol(),
-                    String.format("attempted reference of undefined variable `%s`", varName)
-            );
-        else if (newValue == null || newValue.empty())
+        if (newValue == null || newValue.empty())
             errorListener.syntaxError(
                     ctx.expression().getStart(),
                     String.format("attempted assignment of undefined literal to variable `%s`", varName)
@@ -394,25 +391,30 @@ public class LanguageElaborator extends LanguageBaseVisitor<Type> {
         builder.append(String.format("{\"function\":{\"name\":\"%s\",\"type\":\"%s\",\"args\":[",
                 funcName, returnType), false);
 
-        symbolTable.addLevel();
         List<TypeName> argTypes = new ArrayList<>();
         for (int i=1; i<ctx.ID().size(); i++) {
-            String argName = ctx.ID(i).getText();
             TypeName argType = TypeName.fromTypeName(ctx.TYPE(i-1).getText());
             argTypes.add(argType);
-            Coordinate newCoordinate = symbolTable.put(argName, new Type(argType, true)); // TODO: add support for passing function as argument
+        } // separate loop for the sake of creating function signature before processing the block - recursive function
+
+        Type funcSign = new Type(FUNC, returnType, argTypes, true);
+        Coordinate newCoordinate = symbolTable.put(funcName, funcSign);
+
+        symbolTable.addLevel();
+        for (int i=1; i<ctx.ID().size(); i++) {
+            String argName = ctx.ID(i).getText();
+            TypeName argType = argTypes.get(i-1);
+            Coordinate newArgCoordinate = symbolTable.put(argName, new Type(argType, true)); // TODO: add support for passing function as argument
 
             assert argType != null;
             builder.append(String.format("{\"name\":\"%s\",\"type\":\"%s\",\"coordinate\":{\"level\":%s,\"offset\":%s}},",
-                    argName, argType, newCoordinate.level(), newCoordinate.offset()), false);
+                    argName, argType, newArgCoordinate.level(), newArgCoordinate.offset()), false);
         }
 
         builder.append("],\"children\":[");
         visitFunctionBlock(ctx.block(), returnType);
         symbolTable.removeLevel();
 
-        Type funcSign = new Type(FUNC, returnType, argTypes, true);
-        Coordinate newCoordinate = symbolTable.put(funcName, funcSign);
         builder.append(String.format(
                 "],\"coordinate\":{\"level\":%s,\"offset\":%s}}},", newCoordinate.level(), newCoordinate.offset()));
 
@@ -492,7 +494,7 @@ public class LanguageElaborator extends LanguageBaseVisitor<Type> {
             errorListener.syntaxError(
                     ctx.LPAR().getSymbol(),
                     String.format(
-                            "Argument count mismatch (expected %s, actual %s",
+                            "Argument count mismatch (expected %s, actual %s)",
                             coordinate.type().getArgs().size(),
                             ctx.expression().size()
                     )

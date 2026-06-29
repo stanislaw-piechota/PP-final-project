@@ -1,0 +1,9 @@
+function mature(age: int): void {
+    if age >= 18
+        print true;
+    else
+        print false;
+}
+
+age := 18;
+mature(18);

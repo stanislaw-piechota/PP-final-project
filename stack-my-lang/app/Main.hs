@@ -10,12 +10,6 @@ compile txt = do
     let tree = ast txt
     codeGen tree
 
-inputPath :: FilePath
-inputPath = "../src/main/resources/samples/output.json"
-
-outputPath :: FilePath
-outputPath = "generated.spril"
-
 serializeProgram :: [Instruction] -> String
 serializeProgram = unlines . map show
 
@@ -24,7 +18,7 @@ executeProgram inputPath save outputPath = do
     txt <- readFile inputPath
     let program = compile txt
     if save 
-        then writeFile outputPath (serializeProgram program)
+        then writeFile outputPath (serializeProgram program) >> run [program]
         else run [program]
 
 main :: IO ()

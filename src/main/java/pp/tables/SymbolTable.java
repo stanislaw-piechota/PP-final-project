@@ -75,8 +75,11 @@ public class SymbolTable {
 
         for (Map<String, Coordinate> prevLevel : stack) {
             Coordinate coordinate = prevLevel.get(name);
-            if (coordinate != null)
-                return prevLevel.put(name, coordinate);
+            if (coordinate != null) {
+                Coordinate newCoordinate = coordinate.withType(value);
+                prevLevel.put(name, newCoordinate);
+                return newCoordinate;
+            }
         }
         return null;
     }

@@ -122,8 +122,8 @@ constructProgram (BinaryOp {opName, leftOperand, rightOperand}) needsPush symbol
             "neq" -> Compute NEq regA regB regA
             "gt" -> Compute Gt regA regB regA
             "lt" -> Compute Lt regA regB regA
-            "gte" -> Compute GtE regA regB regA
-            "lte" -> Compute LtE regA regB regA
+            "ge" -> Compute GtE regA regB regA
+            "le" -> Compute LtE regA regB regA
             "and" -> Compute And regA regB regA
             "or" -> Compute Or regA regB regA
             _ -> error "Unknown operator"

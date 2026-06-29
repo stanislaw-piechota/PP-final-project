@@ -45,3 +45,4 @@ build/
 
 bin
 dependency-reduced-pom.xml
+**/output.*

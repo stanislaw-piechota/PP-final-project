@@ -1,7 +1,10 @@
+package pp;
+
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.concurrent.Callable;
 
 import org.antlr.v4.runtime.CharStream;
@@ -14,15 +17,15 @@ import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import pp.LanguageElaborator;
 import pp.errors.ErrorListener;
 import pp.grammar.LanguageLexer;
 import pp.grammar.LanguageParser;
+import pp.helpers.ChangeableOnce;
 
 @Command(name="langC", mixinStandardHelpOptions = true,
         description = "Compile & run .lang file")
-public class Compiler implements Callable<Integer> {
-    public final static File DEFAULT_OUTPUT = new File("output.json.temp");
+public class Compiler implements Callable<String> {
+    public final static File DEFAULT_OUTPUT = new File("output");
 
     @Option(names = "--backend", description = "The path to backend executable", defaultValue = "bin/backend")
     File backend;
@@ -31,7 +34,7 @@ public class Compiler implements Callable<Integer> {
     File source = new File("input.lang");
 
     @Option(names={"-o", "--output"}, description = "The SPROCKIL output path. By default not saved")
-    File output;
+    File output = null;
 
     @Option(names="--run", negatable = true, description = "Run the SPROCKIL implementation",
             defaultValue = "true", fallbackValue = "true")
@@ -40,7 +43,8 @@ public class Compiler implements Callable<Integer> {
     @Option(names={"-v", "--verbose"}, description = "Show verbose logs")
     boolean verbose;
 
-    private boolean saveOutput = false;
+    // prevents saving the output in consecutive executions
+    private final ChangeableOnce<Boolean> saveOutput = new ChangeableOnce<>(false);
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new Compiler()).execute(args);
@@ -48,7 +52,7 @@ public class Compiler implements Callable<Integer> {
     }
 
     @Override
-    public Integer call() throws Exception {
+    public String call() throws Exception {
         CharStream chars = CharStreams.fromPath(source.toPath());
         ErrorListener errorListener = new ErrorListener();
         Lexer lexer = new LanguageLexer(chars);
@@ -70,35 +74,56 @@ public class Compiler implements Callable<Integer> {
             System.out.println(result);
         }
 
-        if (output == null)
+        if (output == null) {
+            saveOutput.set(false);
             output = DEFAULT_OUTPUT;
-        else
-            saveOutput = true;
+        } else
+            saveOutput.set(true);
+        if (!output.toPath().endsWith(".json"))
+            output = new File(output.getPath().concat(".json"));
         Files.write(output.toPath(), result.getBytes());
 
+        String processOutput = "";
         try {
             if (run) {
-                String[] command = saveOutput ? new String[] {
-                        backend.toString(),
-                        output.toString(),
-                        output.toString().replace(".json", "").concat(".spril")
-                } : new String[] {
-                        backend.toString(),
-                        output.toString()
-                };
-
-                Process child = Runtime.getRuntime().exec(command, null);
-                InputStream in = child.getInputStream();
-                InputStream err = child.getErrorStream();
-                child.waitFor();
-                System.out.println(new String(in.readAllBytes()).strip());
-                System.out.println(new String(err.readAllBytes()).strip());
+                processOutput = getProcessOutput();
+                System.out.println(processOutput);
             }
+        } catch (Exception e) {
+            processOutput = e.getMessage();
         } finally {
-            if (!saveOutput)
-                Files.delete(output.toPath());
+            if (!saveOutput.get()) {
+                Files.deleteIfExists(output.toPath());
+                Files.deleteIfExists(Paths.get(output.toString().replace(".json", ".spril")));
+            }
         }
 
-        return 0;
+        return processOutput;
+    }
+
+    private String getProcessOutput() throws IOException, InterruptedException {
+        String cmdString;
+        if (saveOutput.get()) {
+            cmdString = String.format("%s %s %s",
+                    backend.toString(),
+                    output.toString(),
+                    output.toString().replace(".json", ".spril"));
+        } else {
+            cmdString = String.format("%s %s",
+                    backend.toString(),
+                    output.toString());
+        }
+
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", cmdString);
+
+        pb.redirectErrorStream(true);
+        Process child = pb.start();
+
+        InputStream in = child.getInputStream();
+        String output = new String(in.readAllBytes()).strip();
+
+        if (child.waitFor() != 0)
+            throw new RuntimeException("Script failed: "+output);
+        return output;
     }
 }

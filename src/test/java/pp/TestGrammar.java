@@ -199,7 +199,7 @@ public class TestGrammar {
     }
 
     public static final boolean SHOW = true;
-    public static final String SRC_PATH = "src/test/resources/samples/";
-    public static final String RES_PATH = "src/test/resources/results/";
+    public static final String SRC_PATH = "src/test/resources/unit/samples/";
+    public static final String RES_PATH = "src/test/resources/unit/results/";
     public static final String SRC_EXT = ".lang", RES_EXT = ".json";
 }
