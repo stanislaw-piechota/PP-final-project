@@ -74,16 +74,16 @@ data AST
     | Function
         { functionName :: String
         , functionType :: String
-        , functionCoordinate :: Coordinate
         , functionArgs :: [FunctionArg]
         , functionChildren :: [AST]
+        , functionCoordinate :: Coordinate
         }
     | Return AST
     | Call
         { callName :: String
         , callType :: String
-        , callCoordinate :: Coordinate
         , callArgs :: [AST]
+        , callCoordinate :: Coordinate
         }
     | Fork
         { forkTarget :: String

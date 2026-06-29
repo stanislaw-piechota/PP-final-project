@@ -158,7 +158,7 @@ constructProgram (Print printValue) _ symbolTable freeAddress =
 -- Function definitions:
 -- ends with return value in regA, which needs to be pushed onto the stack by the caller
 -- `functionCoordinate` is not properly defined right now
-constructProgram (Function {functionName, functionType, functionCoordinate, functionArgs, functionChildren}) _ symbolTable freeAddress = 
+constructProgram (Function {functionName, functionType, functionArgs, functionChildren, functionCoordinate}) _ symbolTable freeAddress = 
         -- Set symbol table values (first instruction location and number of arguments, used for resetting the stack)
     let (declAddress1, newSymbolTable1, nextFreeAddress1) = getOrCreateAddress functionCoordinate "int" symbolTable freeAddress
         functionCoordinate' = functionCoordinate { offset = offset functionCoordinate + 2 }
@@ -195,23 +195,24 @@ constructProgram (Return ast) _ symbolTable freeAddress =
         in (instr, newSymbolTable, nextFreeAddress)
 
 -- Function calls:
-constructProgram (Call {callName, callType, callCoordinate, callArgs}) needsPush symbolTable freeAddress =
+constructProgram (Call {callName, callType, callArgs, callCoordinate}) needsPush symbolTable freeAddress =
     let (argStackInstr, newSymbolTable, nextFreeAddress) = pushArgsToStack callArgs symbolTable freeAddress
         argSizeCoordinate = callCoordinate { offset = offset callCoordinate + 2 }
         instr = pushAllRegisters ++ argStackInstr ++ [
-              -- Push return address. Add 6 to get to start of popAllRegisters
-              Load (ImmValue 6) regA
+              -- Save stack pointer
+              Load (DirAddr $ addressOfCoordinate argSizeCoordinate newSymbolTable) regA
+            , Compute Add regSP regA regF
+
+              -- Push return address. Add 4 to get to start of popAllRegisters
+            , Load (ImmValue 4) regA
             , Compute Add regPC regA regA
             , Push regA
 
-              -- Save stack pointer
-            , Load (DirAddr $ addressOfCoordinate argSizeCoordinate newSymbolTable) regA
-            , Compute Add regSP regA regF
 
               -- Jump to function
             , Load (DirAddr $ addressOfCoordinate callCoordinate newSymbolTable) regA
             , Jump (Ind regA)
-            ] ++ ([Push regA | needsPush > 0]) ++ popAllRegisters ++ printRegisters
+            ] ++ popAllRegisters ++ ([Push regA | needsPush > 0])
     in (instr, newSymbolTable, nextFreeAddress)
 
 -- DEBUG
