@@ -34,7 +34,7 @@ public class Compiler implements Callable<String> {
     File source = new File("input.lang");
 
     @Option(names={"-o", "--output"}, description = "The SPROCKIL output path. By default not saved")
-    File output = null;
+    protected File output = null;
 
     @Option(names="--run", negatable = true, description = "Run the SPROCKIL implementation",
             defaultValue = "true", fallbackValue = "true")
@@ -101,20 +101,20 @@ public class Compiler implements Callable<String> {
         return processOutput;
     }
 
-    private String getProcessOutput() throws IOException, InterruptedException {
-        String cmdString;
-        if (saveOutput.get()) {
-            cmdString = String.format("%s %s %s",
+    public String getCmdString(boolean save) {
+        if (save) {
+            return String.format("%s %s %s",
                     backend.toString(),
                     output.toString(),
                     output.toString().replace(".json", ".spril"));
-        } else {
-            cmdString = String.format("%s %s",
-                    backend.toString(),
-                    output.toString());
         }
+        return String.format("%s %s",
+                backend.toString(),
+                output.toString());
+    }
 
-        ProcessBuilder pb = new ProcessBuilder("bash", "-c", cmdString);
+    private String getProcessOutput() throws IOException, InterruptedException {
+        ProcessBuilder pb = new ProcessBuilder("bash", "-c", getCmdString(saveOutput.get()));
 
         pb.redirectErrorStream(true);
         Process child = pb.start();

@@ -2,11 +2,12 @@ package pp;
 
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
+import pp.mocks.CompilerMock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestProgram {
-    public final Compiler compiler = new pp.Compiler();
+    public final static Compiler compiler = new CompilerMock();
 
     @Test
     public void testPrograms() {
