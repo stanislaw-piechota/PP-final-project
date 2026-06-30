@@ -11,8 +11,9 @@ public class TestProgram {
 
     @Test
     public void testPrograms() {
-        success("linear_function", new String[] {"10", "1", "-5"});
-//        success("maturity", new String[] {"1"});
+        success("linear_function", new String[] {"-5", "-3", "-1", "1"});
+        success("fib_iter", new String[] {"3", "34"});
+        success("maturity", new String[] {"1", "0", "1"});
     }
 
     private void success(String fileName, String[] expectedLines) {

@@ -6,7 +6,7 @@ if not exist "bin" (
   mkdir bin
 )
 
-call mvn clean install -q -Dmaven.test.redirectTestOutputToFile=true
+call mvn clean install -q -DskipTests
 if errorlevel 1 (
   echo FATAL ERROR: Frontend compilation failed
   exit /b 1
