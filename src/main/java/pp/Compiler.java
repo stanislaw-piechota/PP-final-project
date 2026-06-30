@@ -43,8 +43,8 @@ public class Compiler implements Callable<String> {
     @Option(names={"-v", "--verbose"}, description = "Show verbose logs")
     boolean verbose;
 
-    // prevents saving the output in consecutive executions
-    private final ChangeableOnce<Boolean> saveOutput = new ChangeableOnce<>(false);
+    // prevents saving the output in consecutive executions if not intended
+    protected final ChangeableOnce<Boolean> saveOutput = new ChangeableOnce<>(false);
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new Compiler()).execute(args);
