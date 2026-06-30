@@ -84,6 +84,33 @@ constructConditionalClauses ((condAst, children) : restClauses) elseInstr symbol
                 ++ restInstr
     in (instructions, restSymTable, restFreeAddr)
 
+softDivision :: [Instruction]
+softDivision = [
+        Load (ImmValue 0) regE
+    ,   Load (ImmValue 1) regC
+    ,   Load (ImmValue 1) regF
+    ,   Compute LShift regC regF regC
+    ,   Compute And regA regF regD
+    ,   Compute RShift regA regF regA
+    ,   Compute Add regD regC regC
+    ,   Branch regA (Rel (-5))
+    ,   Load (ImmValue 0) regA
+    -- Cycle
+    ,   Compute LShift regE regF regE
+    ,   Compute And regC regF regD
+    ,   Compute RShift regC regF regC
+    ,   Compute Add regD regE regE
+    ,   Compute GtE regE regB regD
+    ,   Branch regD (Rel 2)
+    ,   Jump (Rel 2)
+    ,   Compute Sub regE regB regE
+    ,   Compute LShift regA regF regA
+    ,   Compute Add regA regD regA
+    ,   Compute Xor regC regF regD
+    ,   Branch regD (Rel (-11))
+    ,   Push regA
+    ]
+
 constructProgram :: AST -> Int -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
 constructProgram (Program children) _ symbolTable freeAddress = constructStatements children symbolTable freeAddress
 constructProgram (Decl {declName, declType, declValue, declCoordinate}) needsPush symbolTable freeAddress =
@@ -115,19 +142,20 @@ constructProgram (BinaryOp {opName, leftOperand, rightOperand}) needsPush symbol
     let (leftInstr, leftSymTable, leftFreeAddr) = constructProgram leftOperand 1 symbolTable freeAddress
         (rightInstr, rightSymTable, rightFreeAddr) = constructProgram rightOperand 1 leftSymTable leftFreeAddr
         opInstr = case opName of
-            "add" -> Compute Add regA regB regA
-            "sub" -> Compute Sub regA regB regA
-            "mul" -> Compute Mul regA regB regA
-            "eq" -> Compute Equal regA regB regA
-            "neq" -> Compute NEq regA regB regA
-            "gt" -> Compute Gt regA regB regA
-            "lt" -> Compute Lt regA regB regA
-            "ge" -> Compute GtE regA regB regA
-            "le" -> Compute LtE regA regB regA
-            "and" -> Compute And regA regB regA
-            "or" -> Compute Or regA regB regA
+            "add" -> [Compute Add regA regB regA]
+            "sub" -> [Compute Sub regA regB regA]
+            "mul" -> [Compute Mul regA regB regA]
+            "div" -> softDivision
+            "eq" -> [Compute Equal regA regB regA]
+            "neq" -> [Compute NEq regA regB regA]
+            "gt" -> [Compute Gt regA regB regA]
+            "lt" -> [Compute Lt regA regB regA]
+            "ge" -> [Compute GtE regA regB regA]
+            "le" -> [Compute LtE regA regB regA]
+            "and" -> [Compute And regA regB regA]
+            "or" -> [Compute Or regA regB regA]
             _ -> error "Unknown operator"
-    in (leftInstr ++ rightInstr ++ [Pop regB, Pop regA, opInstr] ++ ([Push regA | needsPush > 0]), rightSymTable, rightFreeAddr)
+    in (leftInstr ++ rightInstr ++ [Pop regB, Pop regA] ++ opInstr ++ ([Push regA | needsPush > 0]), rightSymTable, rightFreeAddr)
 constructProgram (If {ifCond, ifChildren, ifElifs, ifElse}) _ symbolTable freeAddress =
     let clauses = (ifCond, ifChildren) : map (\ElseIfBranch {elifCond, elifChildren} -> (elifCond, elifChildren)) ifElifs
         elseChildren = fromMaybe [] ifElse
