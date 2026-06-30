@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-module MyCodeGen where
-    -- ( codeGen ) where
+module MyCodeGen
+    ( codeGen ) where
 
 import Sprockell
 import ParseJSON (AST(..), Coordinate(..), ElseIfBranch(..), FunctionArg(..))
@@ -156,8 +156,6 @@ constructProgram (Print printValue) _ symbolTable freeAddress =
     ], newSymbolTable, newFreeAddress)
 
 -- Function definitions:
--- ends with return value in regA, which needs to be pushed onto the stack by the caller
--- `functionCoordinate` is not properly defined right now
 constructProgram (Function {functionName, functionType, functionArgs, functionChildren, functionCoordinate}) _ symbolTable freeAddress = 
         -- Set symbol table values (first instruction location and number of arguments, used for resetting the stack)
     let (declAddress1, newSymbolTable1, nextFreeAddress1) = getOrCreateAddress functionCoordinate "int" symbolTable freeAddress
@@ -174,9 +172,14 @@ constructProgram (Function {functionName, functionType, functionArgs, functionCh
         (argSaveInstr, newSymbolTable3, nextFreeAddress3) = saveArgsToMem functionArgs newSymbolTable2 nextFreeAddress2
         (childrenInstr, newSymbolTable4, nextFreeAddress4) = collectInstrs functionChildren newSymbolTable3 nextFreeAddress3
         endLabel = functionName ++ "_end"
+        
+        -- if function is void, it will not have a return statement, so we need to handle that here
+        returnInstr = case functionType of
+            "void" -> [Push regF, Pop regSP, Jump (Ind regE)]
+            _ -> []
 
         -- pop return address into regE, to be used later in Return
-        bodyInstr = [SetLabel functionName, Pop regE] ++ argSaveInstr ++ childrenInstr ++ [SetLabel endLabel]
+        bodyInstr = [SetLabel functionName, Pop regE] ++ argSaveInstr ++ childrenInstr ++ returnInstr ++ [SetLabel endLabel]
 
         -- add a Jump instruction to the end of the function (so we don't run it at the time of definition)
         definitionInstr' = definitionInstr ++ [Jump (TargetLabel endLabel)]
@@ -208,12 +211,32 @@ constructProgram (Call {callName, callType, callArgs, callCoordinate}) needsPush
             , Compute Add regPC regA regA
             , Push regA
 
-
               -- Jump to function
             , Load (DirAddr $ addressOfCoordinate callCoordinate newSymbolTable) regA
             , Jump (Ind regA)
             ] ++ popAllRegisters ++ ([Push regA | needsPush > 0])
     in (instr, newSymbolTable, nextFreeAddress)
+
+-- Read/Write to shared memory
+constructProgram (WriteSh {writeAddr, writeValue}) _ symbolTable freeAddress =
+    let (valInstrs, newSymbolTable1, nextFreeAddress1) = constructProgram writeValue 1 symbolTable freeAddress
+        (addrInstrs, newSymbolTable2, nextFreeAddress2) = constructProgram writeAddr 1 newSymbolTable1 nextFreeAddress1
+        instructions = valInstrs ++ addrInstrs ++ [
+              Pop regB
+            , Pop regA
+            , WriteInstr regA (IndAddr regB)
+            ]
+    in (instructions, newSymbolTable2, nextFreeAddress2)
+
+constructProgram (ReadSh {readName, readCoordinate, readAddr}) needsPush symbolTable freeAddress =
+    let (addrInstr, newSymbolTable, nextFreeAddress) = constructProgram readAddr 1 symbolTable freeAddress
+        instructions = addrInstr ++ [
+              Pop regA
+            , ReadInstr (IndAddr regA)
+            , Receive regA
+            , Store regA (DirAddr $ addressOfCoordinate readCoordinate newSymbolTable)
+            ] ++ ([Push regA | needsPush > 0])
+    in (instructions, newSymbolTable, nextFreeAddress)
 
 -- DEBUG
 printRegisters :: [Instruction]

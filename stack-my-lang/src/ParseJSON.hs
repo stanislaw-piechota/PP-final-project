@@ -86,8 +86,8 @@ data AST
         , callCoordinate :: Coordinate
         }
     | Fork
-        { forkTarget :: String
-        -- , forkThread :: Integer
+        { forkThread :: Integer
+        , forkFuncCoordinate :: Coordinate
         , forkArgs :: [AST]
         }
     | Join String
@@ -100,6 +100,15 @@ data AST
         { unlockName :: String
         , unlockType :: String
         , unlockCoordinate :: Coordinate
+        }
+    | WriteSh
+        { writeAddr :: AST
+        , writeValue :: AST
+        }
+    | ReadSh
+        { readName :: String
+        , readCoordinate :: Coordinate
+        , readAddr :: AST
         }
     deriving (Eq, Show)
 
@@ -150,6 +159,7 @@ parseSingleFieldNode "fork" value = withObject "fork" parseFork value
 parseSingleFieldNode "join" value = withObject "join" parseJoin value
 parseSingleFieldNode "lock" value = withObject "lock" (parseLockLike Lock) value
 parseSingleFieldNode "unlock" value = withObject "unlock" (parseLockLike Unlock) value
+parseSingleFieldNode "writesh" value = withObject "writesh" parseWriteSh value
 parseSingleFieldNode name (Array values)
     | Vector.length values == 2 =
         BinaryOp name
@@ -244,12 +254,12 @@ parseCall fields = do
 
 parseFork :: Fields -> Either String AST
 parseFork fields = do
-    target <- requireString "target" fields
-    -- thread <- require 
+    thread <- requireInteger "thread" fields
+    coordinate <- requireCoordinate "coordinate" fields
     args <- requireFieldAs "args" parseForkArgs fields
     pure Fork
-        { forkTarget = target
-        -- , forkThread = thread
+        { forkThread = thread
+        , forkFuncCoordinate = coordinate
         , forkArgs = args
         }
 
@@ -331,6 +341,26 @@ parseForkArg (Object obj) =
         [(tag, value)] | Key.toString tag == "arg" -> parseAstValue value
         _ -> parseNodeFields obj
 parseForkArg value = parseAstValue value
+
+parseWriteSh :: Fields -> Either String AST
+parseWriteSh fields = do
+    addr <- requiredExpr fields -- TODO: use proper element name
+    value <- requiredExpr fields
+    pure WriteSh
+        { writeAddr = addr
+        , writeValue = value
+        }
+
+parseReadSh :: Fields -> Either String AST
+parseReadSh fields = do
+    name  <- requireString "name" fields
+    coordinate <- requireCoordinate "coordinates" fields
+    addr <- requiredExpr fields -- this maybe needs to be changed
+    pure ReadSh
+        { readName = name
+        , readCoordinate = coordinate
+        , readAddr = addr
+        }
 
 parseStatements :: Value -> Either String [AST]
 parseStatements = parseArrayWith "statement" parseAstValue
