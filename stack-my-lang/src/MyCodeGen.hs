@@ -228,7 +228,7 @@ constructProgram (Return ast) _ symbolTable freeAddress =
 -- Function calls:
 constructProgram (Call {callName, callType, callArgs, callCoordinate}) needsPush symbolTable freeAddress =
     let (argStackInstr, newSymbolTable, nextFreeAddress) = pushArgsToStack callArgs symbolTable freeAddress
-        argSizeCoordinate = callCoordinate { offset = offset callCoordinate + sizeOfType "int" }
+        argSizeCoordinate = callCoordinate { offset = offset callCoordinate + toInteger (sizeOfType "int") }
         instr = pushAllRegisters ++ argStackInstr ++ [
               -- Save stack pointer
               Load (DirAddr $ addressOfCoordinate argSizeCoordinate newSymbolTable) regA
@@ -256,13 +256,12 @@ constructProgram (WriteSh {writeAddr, writeValue}) _ symbolTable freeAddress =
             ]
     in (instructions, newSymbolTable2, nextFreeAddress2)
 
-constructProgram (ReadSh {readName, readCoordinate, readAddr}) needsPush symbolTable freeAddress =
+constructProgram (ReadSh {readAddr}) needsPush symbolTable freeAddress =
     let (addrInstr, newSymbolTable, nextFreeAddress) = constructProgram readAddr 1 symbolTable freeAddress
         instructions = addrInstr ++ [
               Pop regA
             , ReadInstr (IndAddr regA)
             , Receive regA
-            , Store regA (DirAddr $ addressOfCoordinate readCoordinate newSymbolTable)
             ] ++ ([Push regA | needsPush > 0])
     in (instructions, newSymbolTable, nextFreeAddress)
 
