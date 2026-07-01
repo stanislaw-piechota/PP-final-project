@@ -88,6 +88,19 @@ softDivision :: [Instruction]
 softDivision = [
         Load (ImmValue 0) regE
     ,   Load (ImmValue 1) regC
+    -- Make values positive
+    ,   Load (ImmValue (-1)) regF
+    ,   Compute GtE regA reg0 regD
+    ,   Branch regD (Rel 3)
+    ,   Compute Mul regA regF regA
+    ,   Compute Mul regC regF regC
+    ,   Compute GtE regB reg0 regD
+    ,   Branch regD (Rel 3)
+    ,   Compute Mul regB regF regB
+    ,   Compute Mul regC regF regC
+    ,   Push regC
+
+    ,   Load (ImmValue 1) regC
     ,   Load (ImmValue 1) regF
     ,   Compute LShift regC regF regC
     ,   Compute And regA regF regD
@@ -108,6 +121,9 @@ softDivision = [
     ,   Compute Add regA regD regA
     ,   Compute Xor regC regF regD
     ,   Branch regD (Rel (-11))
+
+    ,   Pop regC
+    ,   Compute Mul regA regC regA
     ,   Push regA
     ]
 
