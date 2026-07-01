@@ -134,26 +134,29 @@ var2: int = (var1 = var1 + 1);
 ```
 
 
-### 2.4. Arithmetic and boolean operations
+### 2.4. Arithmetic and boolean expressions
 Each operation has predefined restrictions regarding argument types and the 
 resulting type. The following operations are allowed (with corresponding type restrictions)
 
-| Operation          | Symbol   | Arguments  | Result |
-|--------------------|----------|------------|--------|
-| Addition           | **+**    | int, int   | int    |
-| Subtraction        | **-**    | int, int   | int    |
-| Multiplication     | **_*_**  | int, int   | int    |
-| Not                | **!**    | bool       | bool   |
-| And                | **&&**   | bool, bool | bool   |
-| Or                 | **\|\|** | bool, bool | bool   |
-| Equal              | **==**   | bool, bool | bool   |
-|                    |          | int, int   | bool   |
-| Non-equal          | **!=**   | bool, bool | bool   |
-|                    |          | int, int   | bool   |
-| Lower than         | **<**    | int, int   | bool   |
-| Greater than       | **>**    | int, int   | bool   |
-| Lower/equal than   | **<=**   | int, int   | bool   |
-| Greater/equal than | **>=**   | int, int   | bool   |
+| Operation          | Symbol         | Priority | Arguments  | Result |
+|--------------------|----------------|----------|------------|--------|
+| Parenthesis        | **( _expr_ )** | 0        | int        | int    |
+|                    |                |          | bool       | bool   |
+| Multiplication     | **_*_**        | 1        | int, int   | int    |
+| _Integer_ division | **/**          | 1        | int, int   | int    |
+| Addition           | **+**          | 2        | int, int   | int    |
+| Subtraction        | **-**          | 2        | int, int   | int    |
+| Lower than         | **<**          | 3        | int, int   | bool   |
+| Greater than       | **>**          | 3        | int, int   | bool   |
+| Lower/equal than   | **<=**         | 3        | int, int   | bool   |
+| Greater/equal than | **>=**         | 3        | int, int   | bool   |
+| Not                | **!**          | 4        | bool       | bool   |
+| Equal              | **==**         | 5        | bool, bool | bool   |
+|                    |                |          | int, int   | bool   |
+| Non-equal          | **!=**         | 5        | bool, bool | bool   |
+|                    |                |          | int, int   | bool   |
+| And                | **&&**         | 6        | bool, bool | bool   |
+| Or                 | **\|\|**       | 6        | bool, bool | bool   |
 
 
 ### 2.5. Basic logging
@@ -270,6 +273,14 @@ lock 1;
 unlock true;
 ```
 
+### 2.11. Integer division
+Language supports integer division (`int / int -> int`).
+
+Special cases:
+- division by `0` - **undefined behavior** (unpredictable result, but no crash)
+- negative nominator - returns mathematically **correct** result
+- negative denominator - returns mathematically **correct** result
+- _uneven_ (with quotient) division - **truncates right side** of the floating point
 
 ## 3. Intermediate Representation
 
@@ -310,10 +321,13 @@ Intermediate representation is an **AST** rewritten using **JSON** notation.
     }
   }},
   
-  // boolean & arithmetic expressions
+  // boolean & arithmetic binary expressions
   {"<operation>": [
     /* expressions */
   ]},
+  
+  // boolean & arithmetic unary expressions, i.e. logical negation
+  {"<operation>": "<expression>"},
   
   // conditional
   {
@@ -422,7 +436,7 @@ IR has **no whitespaces** at all - single line.
 | Pointers (+1.0)           | ❌        | ❌       |
 | Arrays (+1.0)             | ❌        | ❌       |
 | Strings (+0.5)            | ❌        | ❌       |
-| Soft division (+0.3)      | ❌        | ✅       |
+| Soft division (+0.3)      | ✅        | ✅       |
 | Call-by-reference (+0.5)  | ❌        | ❌       |
 | Exception handling (+1.0) | ❌        | ❌       |
 

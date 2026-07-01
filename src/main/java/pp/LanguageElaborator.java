@@ -1,5 +1,6 @@
 package pp;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import pp.errors.ErrorListener;
@@ -202,66 +203,45 @@ public class LanguageElaborator extends LanguageBaseVisitor<Type> {
     }
 
     @Override
-    public Type visitAddition(LanguageParser.AdditionContext ctx) {
-        return evaluateExprVisit(ADD, ctx.expression(0), ctx.expression(1), ctx.ADD());
+    public Type visitAddSub(LanguageParser.AddSubContext ctx) {
+        return evaluateBinExpr(ctx.op.getText(), ctx.expression(0), ctx.expression(1), ctx.op);
     }
 
     @Override
-    public Type visitSubtraction(LanguageParser.SubtractionContext ctx) {
-        return evaluateExprVisit(SUB, ctx.expression(0), ctx.expression(1), ctx.SUB());
+    public Type visitMulDiv(LanguageParser.MulDivContext ctx) {
+        return evaluateBinExpr(ctx.op.getText(), ctx.expression(0), ctx.expression(1), ctx.op);
     }
 
     @Override
-    public Type visitMultiplication(LanguageParser.MultiplicationContext ctx) {
-        return evaluateExprVisit(MUL, ctx.expression(0), ctx.expression(1), ctx.TIMES());
-    }
-
-    @Override
-    public Type visitAnd(LanguageParser.AndContext ctx) {
-        return evaluateExprVisit(AND, ctx.expression(0), ctx.expression(1), ctx.AND());
-    }
-
-    @Override
-    public Type visitOr(LanguageParser.OrContext ctx) {
-        return evaluateExprVisit(OR, ctx.expression(0), ctx.expression(1), ctx.OR());
+    public Type visitAndOr(LanguageParser.AndOrContext ctx) {
+        return evaluateBinExpr(ctx.op.getText(), ctx.expression(0), ctx.expression(1), ctx.op);
     }
 
     @Override
     public Type visitEqual(LanguageParser.EqualContext ctx) {
-        return evaluateExprVisit(EQ, ctx.expression(0), ctx.expression(1), ctx.EQUAL());
+        return evaluateBinExpr(ctx.op.getText(), ctx.expression(0), ctx.expression(1), ctx.op);
     }
 
     @Override
-    public Type visitNotEqual(LanguageParser.NotEqualContext ctx) {
-        return evaluateExprVisit(NEQ, ctx.expression(0), ctx.expression(1), ctx.NOT_EQUAL());
+    public Type visitComparison(LanguageParser.ComparisonContext ctx) {
+        return evaluateBinExpr(ctx.op.getText(), ctx.expression(0), ctx.expression(1), ctx.op);
     }
 
-    @Override
-    public Type visitLt(LanguageParser.LtContext ctx) {
-        return evaluateExprVisit(LT, ctx.expression(0), ctx.expression(1), ctx.LT());
-    }
-
-    @Override
-    public Type visitGt(LanguageParser.GtContext ctx) {
-        return evaluateExprVisit(GT, ctx.expression(0), ctx.expression(1), ctx.GT());
-    }
-    @Override
-    public Type visitGe(LanguageParser.GeContext ctx) {
-        return evaluateExprVisit(GE, ctx.expression(0), ctx.expression(1), ctx.GE());
-    }
-
-    @Override
-    public Type visitLe(LanguageParser.LeContext ctx) {
-        return evaluateExprVisit(LE, ctx.expression(0), ctx.expression(1), ctx.LE());
-    }
-
-    private Type evaluateExprVisit(
-            Operation opName,
+    private Type evaluateBinExpr(
+            String opSymbol,
             LanguageParser.ExpressionContext leftCtx,
             LanguageParser.ExpressionContext rightCtx,
-            TerminalNode opCtx
+            Token opTok
     ) {
-        builder.append(String.format("{\"%s\":[", opName.getOpName()), false);
+        Operation operation = Operation.getByAlias(opSymbol);
+        if (operation == null) {
+            errorListener.syntaxError(
+                    opTok,
+                    String.format("invalid operation `%s`", opSymbol)
+            );
+            return null;
+        }
+        builder.append(String.format("{\"%s\":[", operation.getOpName()), false);
 
         Type left = visit(leftCtx);
         Type right = visit(rightCtx);
@@ -272,22 +252,49 @@ public class LanguageElaborator extends LanguageBaseVisitor<Type> {
                     leftCtx.getStart(),
                     "attempted operation with undefined value"
             );
-        else if (right == null || right.empty())
-            errorListener.syntaxError(
-                    rightCtx.getStart(),
-                    "attempted operation with undefined value"
-            );
-        else if ((result = opName.getResultType(left.typeName(), right.typeName())) == null)
-            errorListener.syntaxError(
-                    opCtx.getSymbol(),
-                    "type mismatch in operation"
-            );
         else {
-            builder.append("]},");
-            return new Type(result, true);
+            if (right == null || right.empty())
+                errorListener.syntaxError(
+                        rightCtx.getStart(),
+                        "attempted operation with undefined value"
+                );
+            else if ((result = operation.getResultType(left.typeName(), right.typeName())) == null)
+                errorListener.syntaxError(
+                        opTok,
+                        "type mismatch in operation"
+                );
+            else {
+                builder.append("]},");
+                return new Type(result, true);
+            }
         }
 
         return null;
+    }
+
+    @Override
+    public Type visitNot(LanguageParser.NotContext ctx) {
+        builder.append("{\"not\":", false);
+        Type expr = visit(ctx.expression());
+
+        if (expr == null || expr.empty()) {
+            errorListener.syntaxError(
+                    ctx.expression().getStart(),
+                    "attempted operation with undefined value"
+            );
+            return null;
+        }
+
+        TypeName result;
+        if ((result = NOT.getResultType(expr.typeName())) == null) {
+            errorListener.syntaxError(
+                    ctx.NOT().getSymbol(),
+                    "type mismatch in operation"
+            );
+            return null;
+        }
+        builder.append("},");
+        return new Type(result, true);
     }
 
     @Override
@@ -621,7 +628,13 @@ public class LanguageElaborator extends LanguageBaseVisitor<Type> {
         }
 
         Operation op = Operation.valueOfOpName(type);
-        assert op != null;
+        if (op == null) {
+            errorListener.syntaxError(
+                    id.getSymbol(),
+                    String.format("invalid operation `%s`", type)
+            );
+            return;
+        }
         TypeName resultType = op.getResultType(coordinate.type().typeName());
         if (resultType == null)
             errorListener.syntaxError(

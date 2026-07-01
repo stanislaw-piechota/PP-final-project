@@ -1,0 +1,10 @@
+print 10 / 2;   // normal case
+print -10 / 2;  // negative numerator
+print 10 / -2;  // negative denominator
+print -10 / -2; // both negative
+print 10 / 3;   // non-integer result (closer to lower bound)
+print 13 / 5;   // non-integer result (closer to upper bound)
+print -10 / 3;  // negative nominator, non-integer result (closer to lower bound)
+print 12 / -5;  // negative denominator, non-integer result (closer to upper bound)
+print -10 / -3; // both negative, non-integer result (closer to lower bound)
+print 10 / 0;   // division by zero

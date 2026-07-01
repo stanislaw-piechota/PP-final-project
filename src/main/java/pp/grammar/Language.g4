@@ -17,23 +17,18 @@ if: IF expression ((LBRACK block? RBRACK) | statement);
 elseif: ELSEIF expression ((LBRACK block? RBRACK) | statement);
 else: ELSE ((LBRACK block? RBRACK) | statement);
 whileLoop: WHILE expression ((LBRACK block? RBRACK) | statement | ';');
-expression: literal                         # exprLit
+expression: literal                                      # exprLit
+          | LPAR expression RPAR                         # par
           | FORK ID (LPAR expression (',' expression)* RPAR)? # threadStart
-          | ID LPAR (expression (',' expression)*)? RPAR # funcCall
-          | ID                              # exprId
-          | LPAR expression RPAR            # par
-          | expression TIMES expression     # multiplication
-          | expression ADD expression       # addition
-          | expression SUB expression       # subtraction
-          | expression LT expression        # lt
-          | expression GT expression        # gt
-          | expression LE expression        # le
-          | expression GE expression        # ge
+          | ID LPAR (expression (',' expression)*)? RPAR      # funcCall
+          | ID                                           # exprId
+          | expression op=(TIMES | DIV) expression       # mulDiv
+          | expression op=(ADD | SUB) expression         # addSub
+          | expression op=(LT | GT | LE | GE) expression # comparison
+          | NOT expression                               # not
+          | expression op=(EQUAL | NOT_EQUAL) expression # equal
+          | expression op=(AND | OR) expression          # andOr
           | ID ':=' expression              # implicitDeclaration
-          | expression EQUAL expression     # equal
-          | expression NOT_EQUAL expression # notEqual
-          | expression AND expression       # and
-          | expression OR expression        # or
           | ID '=' expression               # assignment;
 literal: int | bool;
 bool: BOOL;
@@ -48,11 +43,13 @@ GE: '>=';
 LE: '<=';
 AND: '&&';
 OR: '||';
+NOT: '!';
 
 // artihmetic operators
 ADD: '+';
 SUB: '-';
 TIMES: '*';
+DIV: '/';
 
 // grouping
 LPAR: '(';
