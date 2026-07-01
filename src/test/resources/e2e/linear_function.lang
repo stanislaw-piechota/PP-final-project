@@ -1,7 +1,16 @@
-function f(a: int, b: int, x: int): int {
-    return a*x+b;
+function fs(a: int, b: int, n: int): void {
+    function f(a: int, b: int, x: int): int {
+        return a*x+b;
+    }
+
+    i := 0;
+    while i <= n {
+        print f(a, b, i);
+        i = i + 1;
+    }
 }
 
-print f(1, 0, 10);
-print f(2, -5, 3);
-print f(-3, 4, 3);
+
+// print fs(1, 0, 10);
+fs(2, -5, 3);
+// print f(-3, 4, 3);

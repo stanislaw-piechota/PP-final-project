@@ -1,0 +1,14 @@
+// test differences between frontend int size and backend int size
+
+a := 1;
+b := 2;
+c := 3;
+
+function f(b: int): int {
+    return b;
+}
+
+f(b);
+print a;
+print b;
+print c;

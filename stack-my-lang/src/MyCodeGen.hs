@@ -36,7 +36,7 @@ type SymbolTable = Map Integer Address
 type VariableType = String
 
 sizeOfType :: VariableType -> Address
-sizeOfType "int" = 2
+sizeOfType "int" = 1
 sizeOfType "bool" = 1
 
 addressOfCoordinate :: Coordinate -> SymbolTable -> Address

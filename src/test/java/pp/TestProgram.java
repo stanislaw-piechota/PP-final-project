@@ -2,17 +2,19 @@ package pp;
 
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
-import pp.mocks.CompilerMock;
+import pp.mocks.SprilCompilerMock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestProgram {
-    public final static Compiler compiler = new CompilerMock();
+    public final static SprilCompiler compiler = new SprilCompilerMock();
 
     @Test
     public void testPrograms() {
-        success("linear_function", new String[] {"10", "1", "-5"});
-//        success("maturity", new String[] {"1"});
+        success("linear_function", new String[] {"-5", "-3", "-1", "1"});
+        success("fib_iter", new String[] {"3", "34"});
+        success("maturity", new String[] {"1", "0", "1"});
+        success("offsets", new String[] {"1", "2", "3"});
     }
 
     private void success(String fileName, String[] expectedLines) {
@@ -25,12 +27,13 @@ public class TestProgram {
             String[] actualLines = output.split("\n");
 
             if (expectedLines.length != actualLines.length) {
-                fail("expected " + expectedLines.length + " but got " + actualLines.length);
+                System.err.println(output);
+                fail(String.format("expected %s lines but got %s", expectedLines.length, actualLines.length));
             }
 
             for (int i=0; i<expectedLines.length; i++)
                 assertEquals(expectedLines[i], actualLines[i],
-                        String.format("expected %s but got %s", expectedLines[i], actualLines[i]));
+                        String.format("expected value %s but got %s", expectedLines[i], actualLines[i]));
         } catch (Exception e) {
             System.err.println(e.getMessage());
             fail(e.getMessage());
@@ -56,8 +59,9 @@ public class TestProgram {
             throw new Exception(String.format("Code %s: %s", exitCode, output));
         }
 
-        if (output.contains("error"))
+        if (output.contains("error")) {
             throw new Exception(output);
+        }
 
         return output;
     }

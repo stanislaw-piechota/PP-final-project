@@ -6,4 +6,6 @@ function mature(age: int): void {
 }
 
 age := 18;
-mature(18);
+mature(age);
+mature(age = age - 4);
+mature(age = age + 10);

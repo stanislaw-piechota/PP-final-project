@@ -5,7 +5,7 @@ if [ ! -d "bin" ]; then
   mkdir bin
 fi
 
-mvn clean install -q -Dmaven.test.redirectTestOutputToFile=true
+mvn clean install -q -DskipTests
 if [ $? -ne 0 ]; then
   echo "FATAL ERROR: Frontend compilation failed"
   exit 1

@@ -1,42 +1,83 @@
 # Programming Paradigms Final Project
 
-
 ## 1. Commands
-### 1.1. Create executables of compiler
-Remember about `chmod +x` before executing the script.
+### 1.1. Prerequisites
+- Java 21+ ([Installation guide](https://www.java.com/en/download/help/download_options.html))
+- Maven 3.8.7+ ([Installation guide](https://maven.apache.org/install.html))
+- Stack 3.7.1+ ([Installation guide](https://docs.haskellstack.org/en/stable/install_and_upgrade/))
+- GHCi 9.6.5+ ([Installation guide](https://www.haskell.org/ghc/download.html))
 
+**WARNING**: Make sure that each tool's binaries are in _PATH_.
+
+### 1.2. Installation
+
+#### 1.2.1. Linux
 ```bash
+sudo chmod +x compile_executables langC
+
 ./compile_executables
-```
 
-### 1.2. Use compiler
-```bash
-./langC <input_path>
-```
-
-To learn further about compiler parameters execute
-```bash
 ./langC -h
 ```
 
-### 1.3. (Re)generate ANTLR grammar
+#### 1.2.2. Windows
+```bash
+# run in cmd
+compile_executables.bat
+
+langC.bat -h
+```
+
+If after these commands a help message is printed, then the installation was successful
+and the compiler is ready to use.
+
+
+### 1.3. Running the compiler
+**WARNING**: Use relative path to the compiler wrapper (`langC` or `langC.bat`) as the installation doesn't add the 
+binary to _PATH_.
+
+```bash
+# Compile and run, no IR, no SPRIL
+./langC input.lang
+
+# Compile and run, save IR and SPRIL
+# For output parameter it is recommended to not provide an extension
+./langC input.lang -o output
+
+# Only compile and save IR and SPRIL
+./langC input.lang --no-run -o output
+
+# Compile and run display verbose output
+./langC input.lang -v
+
+# Compile and run using different backend binary
+./langC input.lang --backend ./myBackendBinary
+
+# Display help message
+./langC -h
+```
+
+For Windows use `langC.bat` instead of `./langC`.
+
+
+### 1.4. (Re)generate ANTLR grammar
 ```bash
 mvn generate-sources
 ```
 
-### 1.4. (Re)build project
+### 1.5. (Re)build project
 ```bash
-# simplest version
+# test and build
 mvn install
 
-# reset cache and build
+# reset cache, test and build
 mvn clean install
 
 # skip tests and build
 mvn install -DskipTests
 ```
 
-### 1.5. Run ONLY tests
+### 1.6. Run ONLY tests
 ```bash
 mvn verify
 ```
@@ -97,22 +138,25 @@ var2: int = (var1 = var1 + 1);
 Each operation has predefined restrictions regarding argument types and the 
 resulting type. The following operations are allowed (with corresponding type restrictions)
 
-| Operation      | Symbol   | Arguments  | Result |
-|----------------|----------|------------|--------|
-| Addition       | **+**    | int, int   | int    |
-| Subtraction    | **-**    | int, int   | int    |
-| Multiplication | **_*_**  | int, int   | int    |
-| Not            | **!**    | bool       | bool   |
-| And            | **&&**   | bool, bool | bool   |
-| Or             | **\|\|** | bool, bool | bool   |
-| Equal          | **==**   | bool, bool | bool   |
-|                |          | int, int   | bool   |
-| Non-equal      | **!=**   | bool, bool | bool   |
-|                |          | int, int   | bool   |
-| And            | **&&**   | bool, bool | bool   |
+| Operation          | Symbol   | Arguments  | Result |
+|--------------------|----------|------------|--------|
+| Addition           | **+**    | int, int   | int    |
+| Subtraction        | **-**    | int, int   | int    |
+| Multiplication     | **_*_**  | int, int   | int    |
+| Not                | **!**    | bool       | bool   |
+| And                | **&&**   | bool, bool | bool   |
+| Or                 | **\|\|** | bool, bool | bool   |
+| Equal              | **==**   | bool, bool | bool   |
+|                    |          | int, int   | bool   |
+| Non-equal          | **!=**   | bool, bool | bool   |
+|                    |          | int, int   | bool   |
+| Lower than         | **<**    | int, int   | bool   |
+| Greater than       | **>**    | int, int   | bool   |
+| Lower/equal than   | **<=**   | int, int   | bool   |
+| Greater/equal than | **>=**   | int, int   | bool   |
 
 
-### 2.3. Basic logging
+### 2.5. Basic logging
 Standard output is managed with keyword **print**.
 
 ```
@@ -122,7 +166,7 @@ print var;
 print (var1 = 2);
 ```
 
-### 2.4. Conditional statements
+### 2.6. Conditional statements
 Conditional statements are using keywords 
 **if**, **elif** and **else**. 
 If the block contains only one line brackets can be omitted.
@@ -149,7 +193,8 @@ else {
 }
 ```
 
-### 2.5. Loop statement
+
+### 2.7. Loop statement
 ```
 while <expr>
     <statement>; // single statement
@@ -159,10 +204,11 @@ while <expr> {
 }
 ```
 
-### 2.6. Functions
+
+### 2.8. Functions
 If function return type is not void then return statement is required, and
 it must match declared return type. If function is not supposed to return a value
-declare it as a type `void`.
+declare it as a type `void`. Empty return statements are **not allowed** yet.
 
 You can create nested function. Inside the inner scope of a function it is possible
 to shadow variable names. Function declared in inner scope of a function are only 
@@ -196,7 +242,8 @@ function f(x: int): void {
 f(1);
 ```
 
-### 2.7. Concurrency
+
+### 2.9. Concurrency
 To deal with concurrency we use **fork**/**join** convention.
 Thread target is a function, and it is possible to add 
 parameters in a comma separated list of expressions.
@@ -209,7 +256,8 @@ fork <threadId> <targetFunc> (<expr>[, <expr>]) // passing parameters
 join <threadId>;
 ```
 
-### 2.8. Locks
+
+### 2.10. Locks
 
 To lock and unlock a resource a corresponding identifier is required.
 
@@ -222,14 +270,11 @@ lock 1;
 unlock true;
 ```
 
+
 ## 3. Intermediate Representation
 
 Intermediate representation is an **AST** rewritten using **JSON** notation.
-Every node contains:
-- name _(key - object pair)_
-- intrinsic attributes _(key - value pair)_
 
-Here is the api for specific instructions
 ```json5
 [
   // program (as a whole)
@@ -371,13 +416,13 @@ IR has **no whitespaces** at all - single line.
 | Print                     | ✅        | ✅       |
 | Conditionals              | ✅        | ✅       |
 | While loop                | ✅        | ✅       |
-| Functions (+1.0)          | ✅        | ❌       |
+| Functions (+1.0)          | ✅        | ✅       |
 | Threads                   | ✅        | ❌       |
 | Locks                     | ✅        | ❌       |
 | Pointers (+1.0)           | ❌        | ❌       |
 | Arrays (+1.0)             | ❌        | ❌       |
 | Strings (+0.5)            | ❌        | ❌       |
-| Soft division (+0.3)      | ❌        | ❌       |
+| Soft division (+0.3)      | ❌        | ✅       |
 | Call-by-reference (+0.5)  | ❌        | ❌       |
 | Exception handling (+1.0) | ❌        | ❌       |
 
