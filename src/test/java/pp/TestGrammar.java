@@ -1,25 +1,19 @@
 package pp;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import pp.errors.ErrorListener;
 import pp.errors.ParseException;
-import pp.grammar.LanguageLexer;
-import pp.grammar.LanguageParser;
+import pp.mocks.SprilCompilerMock;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestGrammar {
+    public final static Compiler compiler = new SprilCompilerMock();
+
     @Test
     public void testEmpty() {
         fail("empty_program");
@@ -148,32 +142,11 @@ public class TestGrammar {
     }
 
     private void runTest(String fileName) throws IOException, ParseException {
-        Path srcPath = new File(SRC_PATH + fileName + SRC_EXT).toPath();
-        CharStream chars = CharStreams.fromPath(srcPath);
-        ErrorListener errorListener = new ErrorListener();
-        Lexer lexer = new LanguageLexer(chars);
-        lexer.removeErrorListeners();
-        lexer.addErrorListener(errorListener);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        LanguageParser parser = new LanguageParser(tokens);
-
-        // parsing phase
-        parser.removeErrorListeners();
-        parser.addErrorListener(errorListener);
-        ParseTree tree = parser.program();
-        errorListener.throwException();
-
-        // elaboration phase
-        LanguageElaborator compiler = new LanguageElaborator();
-        String result = compiler.compile(tree);
+        compiler.setSource(SRC_PATH + fileName + SRC_EXT);
+        String result = compiler.runFrontend();
 
         assertTrue(jsonEqual(readFile(
                 RES_PATH+fileName+RES_EXT), result));
-
-        if (SHOW) {
-            System.out.println(result);
-        }
-
     }
 
     private String readFile(String fileName) {

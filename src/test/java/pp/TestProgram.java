@@ -2,12 +2,12 @@ package pp;
 
 import org.junit.jupiter.api.Test;
 import picocli.CommandLine;
-import pp.mocks.CompilerMock;
+import pp.mocks.SprilCompilerMock;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestProgram {
-    public final static Compiler compiler = new CompilerMock();
+    public final static SprilCompiler compiler = new SprilCompilerMock();
 
     @Test
     public void testPrograms() {
