@@ -7,9 +7,9 @@ public class SprilCompilerMock extends SprilCompiler {
     public String getCmdString(boolean save) {
         String outputPath = "../"+super.output.toString();
         if (!save)
-            return String.format("cd stack-my-lang && stack run -- %s",
+            return String.format("cd stack-my-lang && stack --silent run -- %s",
                     outputPath);
-        return String.format("cd stack-my-lang && stack run -- %s %s",
+        return String.format("cd stack-my-lang && stack --silent run -- %s %s",
                 outputPath, outputPath.replace(".json", ".spril"));
     }
 

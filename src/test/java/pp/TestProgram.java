@@ -14,6 +14,7 @@ public class TestProgram {
         success("linear_function", new String[] {"-5", "-3", "-1", "1"});
         success("fib_iter", new String[] {"3", "34"});
         success("maturity", new String[] {"1", "0", "1"});
+        success("offsets", new String[] {"1", "2", "3"});
     }
 
     private void success(String fileName, String[] expectedLines) {
@@ -26,12 +27,13 @@ public class TestProgram {
             String[] actualLines = output.split("\n");
 
             if (expectedLines.length != actualLines.length) {
-                fail("expected " + expectedLines.length + " but got " + actualLines.length);
+                System.err.println(output);
+                fail(String.format("expected %s lines but got %s", expectedLines.length, actualLines.length));
             }
 
             for (int i=0; i<expectedLines.length; i++)
                 assertEquals(expectedLines[i], actualLines[i],
-                        String.format("expected %s but got %s", expectedLines[i], actualLines[i]));
+                        String.format("expected value %s but got %s", expectedLines[i], actualLines[i]));
         } catch (Exception e) {
             System.err.println(e.getMessage());
             fail(e.getMessage());
@@ -57,8 +59,9 @@ public class TestProgram {
             throw new Exception(String.format("Code %s: %s", exitCode, output));
         }
 
-        if (output.contains("error"))
+        if (output.contains("error")) {
             throw new Exception(output);
+        }
 
         return output;
     }

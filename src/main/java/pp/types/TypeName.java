@@ -2,7 +2,7 @@ package pp.types;
 
 
 public enum TypeName {
-    BOOL("bool", 2),
+    BOOL("bool", 1),
     INT("int", 2),
     VOID("void", null),
     FUNC("function", 4);
