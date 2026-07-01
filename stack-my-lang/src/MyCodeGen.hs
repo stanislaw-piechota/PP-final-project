@@ -228,7 +228,7 @@ constructProgram (Return ast) _ symbolTable freeAddress =
 -- Function calls:
 constructProgram (Call {callName, callType, callArgs, callCoordinate}) needsPush symbolTable freeAddress =
     let (argStackInstr, newSymbolTable, nextFreeAddress) = pushArgsToStack callArgs symbolTable freeAddress
-        argSizeCoordinate = callCoordinate { offset = offset callCoordinate + 2 }
+        argSizeCoordinate = callCoordinate { offset = offset callCoordinate + sizeOfType "int" }
         instr = pushAllRegisters ++ argStackInstr ++ [
               -- Save stack pointer
               Load (DirAddr $ addressOfCoordinate argSizeCoordinate newSymbolTable) regA
