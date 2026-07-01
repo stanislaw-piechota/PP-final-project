@@ -187,7 +187,7 @@ constructProgram (Print printValue) _ symbolTable freeAddress =
 constructProgram (Function {functionName, functionType, functionArgs, functionChildren, functionCoordinate}) _ symbolTable freeAddress = 
         -- Set symbol table values (first instruction location and number of arguments, used for resetting the stack)
     let (declAddress1, newSymbolTable1, nextFreeAddress1) = getOrCreateAddress functionCoordinate "int" symbolTable freeAddress
-        functionCoordinate' = functionCoordinate { offset = offset functionCoordinate + 2 }
+        functionCoordinate' = functionCoordinate { offset = offset functionCoordinate + toInteger (sizeOfType "int") }
         (declAddress2, newSymbolTable2, nextFreeAddress2) = getOrCreateAddress functionCoordinate' "int" newSymbolTable1 nextFreeAddress1
         definitionInstr = [
               Load (AddrLabel functionName) regA -- Load position of first instruction, from label
