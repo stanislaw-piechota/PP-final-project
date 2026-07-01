@@ -19,7 +19,7 @@ public class TestProgram {
 //        success("maturity", new String[] {"1", "0", "1"});
         success("offsets", new String[] {"1", "2", "3"});
         success("division",  new String[] {"5", "-5", "-5", "5", "3", "2", "-3", "-2", "3" ,""});
-//        success("long_expression", new String[] {"-5", "10", "11"});
+        success("long_expression", new String[] {"-5", "10", "11"});
     }
 
     private void success(String fileName, String[] expectedLines) {

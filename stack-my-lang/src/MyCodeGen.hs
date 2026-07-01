@@ -124,7 +124,6 @@ softDivision = [
 
     ,   Pop regC
     ,   Compute Mul regA regC regA
-    ,   Push regA
     ]
 
 constructProgram :: AST -> Int -> SymbolTable -> Address -> ([Instruction], SymbolTable, Address)
